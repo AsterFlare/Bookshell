@@ -1,3 +1,28 @@
 <resources>
-    <string name="app_name">TestBooks1</string>
+    <string name="app_name">BookShell</string>
+    <string name="logo_desc">Logo</string>
+    <string name="profile_menu_desc">Profile Menu</string>
+    <string name="profile_name">Elena Waters</string>
+    <string name="profile_badge_sea_mover">Sea Mover</string>
+    <string name="profile_bio">Curating a digital library of oceanic explorations and timeless classics. Currently fascinated by maritime history and magical realism.</string>
+    <string name="stat_books_count">124</string>
+    <string name="stat_books_label">BOOKS READ</string>
+    <string name="stat_badges_count">2</string>
+    <string name="stat_badges_label">ACTIVE BADGES</string>
+    <string name="section_badges">Badges</string>
+    <string name="action_view_all">VIEW ALL</string>
+    <string name="badge_novice_reader">Novice Reader</string>
+    <string name="badge_novice_count">10 BOOKS</string>
+    <string name="badge_bookworm">Bookworm</string>
+    <string name="badge_bookworm_count">50 BOOKS</string>
+    <string name="streak_label">Reading Streak</string>
+    <string name="streak_days">14 Days</string>
+    <string name="weekly_activity">WEEKLY ACTIVITY</string>
+    <string name="section_currently_diving_in">Currently Diving In</string>
+    <string name="book_title_1">The Ocean\'s Whisper</string>
+    <string name="book_author_1">By Julian Finch</string>
+    <string name="book_title_2">Navigating Tomorrow</string>
+    <string name="book_author_2">By Clara M. Bell</string>
+    <string name="action_continue">CONTINUE →</string>
+    <string name="star_badge_desc">Star Badge</string>
 </resources>

@@ -32,8 +32,13 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_profile);
-        initialize();
+
         c = this;
+        bottomNav = findViewById(R.id.bottomNavigationView);
+        bottomNav.setSelectedItemId(R.id.nav_profile);
+
+        initialize();
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -42,9 +47,6 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     public void initialize() {
-        bottomNav = findViewById(R.id.bottomNavigationView);
-        bottomNav.setSelectedItemId(R.id.nav_profile);
-
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
@@ -54,7 +56,6 @@ public class ProfileActivity extends AppCompatActivity {
                 startActivity(new Intent(c, LibraryActivity.class));
                 return true;
             } else if (id == R.id.nav_profile) {
-                //startActivity(new Intent(c, ProfileActivity.class));
                 return true;
             }
             return false;
@@ -83,6 +84,7 @@ public class ProfileActivity extends AppCompatActivity {
                         tvfullName.setText(fullName);
                     }
                 }
+
                 @Override
                 public void onCancelled(DatabaseError error) {
                     Toast.makeText(getApplicationContext(), "Failed to load name", Toast.LENGTH_SHORT).show();
