@@ -23,6 +23,12 @@
             android:name=".ProfileActivity"
             android:exported="false" />
         <activity
+            android:name=".MyBadgesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EditProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>

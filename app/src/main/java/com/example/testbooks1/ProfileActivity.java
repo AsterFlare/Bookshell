@@ -3,6 +3,8 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +25,8 @@ import com.google.firebase.database.ValueEventListener;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    TextView tvfullName;
+    TextView tvfullName, tvViewAllBadges;
+    ImageButton menuButton;
     BottomNavigationView bottomNav;
     private Context c;
 
@@ -62,6 +65,17 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
         tvfullName = findViewById(R.id.fullName);
+        tvViewAllBadges = findViewById(R.id.viewAllBadges);
+        menuButton = findViewById(R.id.menuButton);
+
+        tvViewAllBadges.setOnClickListener(v -> {
+            startActivity(new Intent(c, MyBadgesActivity.class));
+        });
+
+        menuButton.setOnClickListener(v -> {
+            startActivity(new Intent(c, EditProfileActivity.class));
+        });
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (user != null) {

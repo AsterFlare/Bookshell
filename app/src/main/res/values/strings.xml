@@ -24,5 +24,27 @@
     <string name="book_title_2">Navigating Tomorrow</string>
     <string name="book_author_2">By Clara M. Bell</string>
     <string name="action_continue">CONTINUE →</string>
-    <string name="star_badge_desc">Star Badge</string>
+
+    <!-- My Badges Strings -->
+    <string name="title_my_badges">My Badges</string>
+    <string name="collector_level_label">COLLECTOR LEVEL</string>
+    <string name="badges_earned_status">4 / 6 Badges Earned</string>
+    <string name="badge_first_voyage">First Voyage</string>
+    <string name="desc_first_voyage">READ 1ST BOOK</string>
+    <string name="badge_tidal_curator">Tidal Curator</string>
+    <string name="desc_tidal_curator">CREATE A LIST</string>
+    <string name="badge_starfish_rater">Starfish Rater</string>
+    <string name="desc_starfish_rater">LEAVE 5 REVIEWS</string>
+    <string name="badge_ancient_pearl">Ancient Pearl</string>
+    <string name="desc_ancient_pearl">READ 100 BOOKS</string>
+    <string name="badge_detail_title">Badge Detail</string>
+    <string name="badge_detail_desc">Select a badge to view the story of your achievement. Unlocking badges grants you shell points for customizing your shelf!</string>
+
+    <!-- Edit Profile Strings -->
+    <string name="label_first_name">First Name</string>
+    <string name="label_last_name">Last Name</string>
+    <string name="label_email">Email Address</string>
+    <string name="label_bio">Bio</string>
+    <string name="action_save_changes">Save Changes</string>
+    <string name="action_cancel_changes">Cancel Changes</string>
 </resources>
