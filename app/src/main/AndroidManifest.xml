@@ -23,7 +23,7 @@
             android:name=".ProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".MyBadgesActivity"
+            android:name=".BadgesActivity"
             android:exported="false" />
         <activity
             android:name=".EditProfileActivity"

@@ -3,6 +3,7 @@
     <string name="logo_desc">Logo</string>
     <string name="profile_menu_desc">Profile Menu</string>
     <string name="profile_name">Elena Waters</string>
+    <string name="profile_name_format">%1$s %2$s</string>
     <string name="profile_badge_sea_mover">Sea Mover</string>
     <string name="profile_bio">Curating a digital library of oceanic explorations and timeless classics. Currently fascinated by maritime history and magical realism.</string>
     <string name="stat_books_count">124</string>
@@ -10,6 +11,11 @@
     <string name="stat_badges_count">2</string>
     <string name="stat_badges_label">ACTIVE BADGES</string>
     <string name="section_badges">Badges</string>
+    <string name="title_badges">Badges</string>
+    <string name="badge_status_unlocked">Unlocked</string>
+    <string name="badge_status_locked">Locked</string>
+    <string name="badges_unlocked_summary_format">%1$d / %2$d badges unlocked</string>
+    <string name="badges_unlocked_count_format">%1$d/%2$d</string>
     <string name="action_view_all">VIEW ALL</string>
     <string name="badge_novice_reader">Novice Reader</string>
     <string name="badge_novice_count">10 BOOKS</string>
@@ -17,6 +23,7 @@
     <string name="badge_bookworm_count">50 BOOKS</string>
     <string name="streak_label">Reading Streak</string>
     <string name="streak_days">14 Days</string>
+    <string name="streak_days_format">%1$d Days</string>
     <string name="weekly_activity">WEEKLY ACTIVITY</string>
     <string name="section_currently_diving_in">Currently Diving In</string>
     <string name="book_title_1">The Ocean\'s Whisper</string>
@@ -24,11 +31,24 @@
     <string name="book_title_2">Navigating Tomorrow</string>
     <string name="book_author_2">By Clara M. Bell</string>
     <string name="action_continue">CONTINUE →</string>
+    <string name="currently_reading_empty">Nothing here yet — open your library and set a book to &quot;Currently Reading&quot;.</string>
+    <string name="star_badge_desc">Star Badge</string>
 
     <!-- My Badges Strings -->
     <string name="title_my_badges">My Badges</string>
     <string name="collector_level_label">COLLECTOR LEVEL</string>
+    <string name="level_newcomer">Newcomer</string>
+    <string name="level_explorer">Explorer</string>
+    <string name="level_sea_mover">Sea Mover</string>
+    <string name="level_ocean_master">Ocean Master</string>
+    <string name="badges_footer_info">Select a badge to view the story of your achievement. Unlocking badges grants points.</string>
     <string name="badges_earned_status">4 / 6 Badges Earned</string>
+    <string name="badges_earned_status_format">%1$d / %2$d Badges Earned</string>
+    <string name="badge_status_earned">Status: Earned</string>
+    <string name="badge_status_not_earned">Status: Not Earned</string>
+    <string name="badge_detail_criteria_format">Criteria: %1$s</string>
+    <string name="badge_detail_title">Badge Detail</string>
+    <string name="badge_detail_desc">Select a badge to view the story of your achievement. Unlocking badges grants you shell points for customizing your shelf!</string>
     <string name="badge_first_voyage">First Voyage</string>
     <string name="desc_first_voyage">READ 1ST BOOK</string>
     <string name="badge_tidal_curator">Tidal Curator</string>
@@ -37,14 +57,35 @@
     <string name="desc_starfish_rater">LEAVE 5 REVIEWS</string>
     <string name="badge_ancient_pearl">Ancient Pearl</string>
     <string name="desc_ancient_pearl">READ 100 BOOKS</string>
-    <string name="badge_detail_title">Badge Detail</string>
-    <string name="badge_detail_desc">Select a badge to view the story of your achievement. Unlocking badges grants you shell points for customizing your shelf!</string>
+    <string name="level_number">4</string>
+    <string name="more_options_desc">More options</string>
+    <string name="badge_icon_desc">Badge Icon</string>
+    <string name="checkmark_desc">Checkmark</string>
 
     <!-- Edit Profile Strings -->
+    <string name="title_edit_profile">Edit Profile</string>
+    <string name="edit_profile_subtitle">Update your name, bio, and photo</string>
     <string name="label_first_name">First Name</string>
     <string name="label_last_name">Last Name</string>
     <string name="label_email">Email Address</string>
     <string name="label_bio">Bio</string>
     <string name="action_save_changes">Save Changes</string>
     <string name="action_cancel_changes">Cancel Changes</string>
+    <string name="toast_profile_updated">Profile updated successfully</string>
+    <string name="toast_update_failed">Update failed</string>
+    <string name="toast_fill_fields">Please fill in all required fields</string>
+    <string name="toast_upload_failed">Image upload failed</string>
+    <string name="edit_profile_pic_desc">Edit profile picture</string>
+    <string name="toast_login_success">Login successful</string>
+    <string name="toast_login_failed">Login failed: %1$s</string>
+    <string name="toast_fill_all_fields">Please fill all fields</string>
+    <string name="welcome_back">Welcome Back</string>
+    <string name="login_desc">Login to continue your journey</string>
+    <string name="signup_prompt">Don\'t have an account yet? Sign Up</string>
+    <string name="toast_error_badges">Failed to load badges</string>
+    <string name="toast_stats_load_failed">Could not load your stats</string>
+    <string name="toast_profile_load_failed">Could not load profile</string>
+    <string name="toast_currently_reading_failed">Could not load currently reading list</string>
+    <string name="edit_saving">Saving…</string>
+    <string name="action_close">Close</string>
 </resources>

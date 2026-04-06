@@ -3,6 +3,8 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -21,6 +23,8 @@ import com.android.volley.toolbox.Volley;
 import com.example.testbooks1.Adapter.BookAdapter;
 import com.example.testbooks1.Model.Book;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,12 +35,12 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     private EditText etSearch;
-    private RecyclerView rvBooks;
     private BookAdapter adapter;
     private List<Book> bookList;
-    BottomNavigationView bottomNav;
     private Context c;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,15 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         c = this;
+        
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
         initialize();
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -54,18 +67,28 @@ public class MainActivity extends AppCompatActivity {
 
     public void initialize(){
         etSearch = findViewById(R.id.etSearch);
-        rvBooks = findViewById(R.id.rvBooks);
+        Button btnSearch = findViewById(R.id.btnSearch);
+        RecyclerView rvBooks = findViewById(R.id.rvBooks);
         bookList = new ArrayList<>();
 
         rvBooks.setLayoutManager(new GridLayoutManager(this, 2));
         adapter = new BookAdapter(c, (ArrayList<Book>) bookList);
         rvBooks.setAdapter(adapter);
+        
         callBooks("bestseller");
-        bottomNav = findViewById(R.id.bottomNavigationView);
+
+        btnSearch.setOnClickListener(v -> {
+            String query = etSearch.getText().toString().trim();
+            if (!query.isEmpty()) {
+                callBooks(query);
+            }
+        });
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
+        bottomNav.setSelectedItemId(R.id.nav_home);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                //startActivity(new Intent(c, HomeActivity.class));
                 return true;
             } else if (id == R.id.nav_library) {
                 startActivity(new Intent(c, LibraryActivity.class));
@@ -79,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void callBooks(String queryInput) {
-
         String query = queryInput.trim().replace(" ", "+");
         String url = "https://www.googleapis.com/books/v1/volumes?q=" + query + "&key=AIzaSyAycxqRNFLfOCxktkf3cDcWChAc0Cfvk4Y";
 
@@ -89,7 +111,10 @@ public class MainActivity extends AppCompatActivity {
                 response -> {
                     try {
                         bookList.clear();
-                        if (!response.has("items")) return;
+                        if (!response.has("items")) {
+                            adapter.notifyItemRangeRemoved(0, bookList.size());
+                            return;
+                        }
 
                         JSONArray items = response.getJSONArray("items");
 
@@ -118,9 +143,9 @@ public class MainActivity extends AppCompatActivity {
                             }
                             bookList.add(new Book(id, title, imageUrl, author, description, publisher));
                         }
-                        adapter.notifyDataSetChanged();
+                        adapter.notifyItemRangeChanged(0, bookList.size());
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Error parsing books JSON", e);
                     }
                 },
                 error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
