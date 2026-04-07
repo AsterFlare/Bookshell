@@ -67,22 +67,6 @@
         app:layout_constraintTop_toBottomOf="@id/searchBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CURATION"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@color/lightBlue"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Books Today"
-            android:textSize="25sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"/>
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -94,12 +78,27 @@
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="10dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CURATION"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/lightBlue"
+                android:layout_marginLeft="14dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Books Today"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginLeft="14dp"/>
             <ProgressBar
                 android:id="@+id/progressBooks"
                 android:layout_width="wrap_content"
@@ -112,6 +111,35 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
                 android:padding="5dp"/>
+            <LinearLayout
+                android:id="@+id/recommendedSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_margin="12dp"
+                android:padding="18dp"
+                android:background="@drawable/rounded_recommended_cnt">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Recommended For You"
+                    android:textSize="24sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Based on your favorite categories"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:layout_marginBottom="8dp"/>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRecommended"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"/>
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/currentReadingSection"
                 android:layout_width="match_parent"

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -44,7 +45,7 @@ public class BookDetailActivity extends AppCompatActivity {
     DatabaseReference communityRef, reactionsRef, reviewRef;
     RatingBar ratingBar;
     EditText etReview;
-    Button btnPreview, btnAddToList, btnSubmitReview;
+    Button btnPreview, btnCreateList, btnAddToList, btnSubmitReview;
     Button btnWantToRead, btnCurrentlyReading, btnCompleted;
     RecyclerView rvReviews;
     ImageView btnBack, btnLike, btnFire, btnHeart, btnSad, btnAngry;
@@ -97,6 +98,7 @@ public class BookDetailActivity extends AppCompatActivity {
         etReview = findViewById(R.id.etReview);
 
         btnPreview = findViewById(R.id.btnPreview);
+        btnCreateList = findViewById(R.id.btnCreateList);
         btnAddToList = findViewById(R.id.btnAddToList);
         btnSubmitReview = findViewById(R.id.btnSubmitReview);
         rvReviews = findViewById(R.id.rvReviews);
@@ -187,17 +189,55 @@ public class BookDetailActivity extends AppCompatActivity {
             startActivity(new Intent(c, MainActivity.class));
         });
 
-        btnAddToList.setOnClickListener(v -> {
+        btnCreateList.setOnClickListener(v -> {
             Intent intent = new Intent(c, AddToListActivity.class);
-
             intent.putExtra("bookId", bookId);
             intent.putExtra("title", tvTitle.getText().toString());
             intent.putExtra("author", tvAuthor.getText().toString());
             intent.putExtra("image", getIntent().getStringExtra("image"));
             intent.putExtra("category", tvCategory.getText().toString());
             intent.putExtra("description", tvDescription.getText().toString());
-
             startActivity(intent);
+        });
+
+        btnAddToList.setOnClickListener(v -> {
+            String uid = AuthManager.getUid();
+            if (uid == null) return;
+
+            DatabaseReference listsRef = FirebaseDatabase.getInstance()
+                    .getReference("communityLists")
+                    .child(uid);
+            listsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        ArrayList<String> listTitles = new ArrayList<>();
+                        ArrayList<String> listIds = new ArrayList<>();
+                        for (DataSnapshot ds : snapshot.getChildren()) {
+                            String listId = ds.getKey();
+                            listIds.add(listId);
+                            listTitles.add(listId);
+                        }
+                        String[] titlesArray = listTitles.toArray(new String[0]);
+
+                        new AlertDialog.Builder(c)
+                                .setTitle("Select a List")
+                                .setItems(titlesArray, (dialog, which) -> {
+                                    String selectedListId = listIds.get(which);
+                                    addBookToUserList(selectedListId);
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
+                    } else {
+                        Toast.makeText(c, "No current list existing.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError error) {
+                    Toast.makeText(c, "Failed to load lists", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         btnLike.setOnClickListener(v -> incrementReaction("like"));
@@ -323,21 +363,16 @@ public class BookDetailActivity extends AppCompatActivity {
 
         String author = getIntent().getStringExtra("author");
         String description = getIntent().getStringExtra("description");
-        String publisher = getIntent().getStringExtra("publisher");
         String category = getIntent().getStringExtra("category");
-        String snippet = getIntent().getStringExtra("snippet");
 
         UserBook userBook = new UserBook(
-                uid,
                 tvTitle.getText().toString(),
                 status,
                 imageUrl,
                 timestamp,
                 author,
                 description,
-                publisher,
-                category,
-                snippet
+                category
         );
 
         userBooksRef.child(bookId).setValue(userBook).addOnCompleteListener(task -> {
@@ -441,6 +476,42 @@ public class BookDetailActivity extends AppCompatActivity {
             }
             @Override
             public void onCancelled(DatabaseError error) {}
+        });
+    }
+
+    private void addBookToUserList(String listId) {
+        String uid = AuthManager.getUid();
+        if (uid == null) return;
+
+        String bookId = getIntent().getStringExtra("bookId");
+        String imageUrl = getIntent().getStringExtra("image");
+        if (imageUrl != null && imageUrl.startsWith("http://")) {
+            imageUrl = imageUrl.replace("http://", "https://");
+        }
+
+        DatabaseReference listBooksRef = FirebaseDatabase.getInstance()
+                .getReference("communityLists")
+                .child(uid)
+                .child(listId)
+                .child("books")
+                .child(bookId);
+
+        UserBook userBook = new UserBook(
+                tvTitle.getText().toString(),
+                "Added to List",
+                imageUrl,
+                System.currentTimeMillis(),
+                getIntent().getStringExtra("author"),
+                getIntent().getStringExtra("description"),
+                getIntent().getStringExtra("category")
+        );
+
+        listBooksRef.setValue(userBook).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(c, "Book added to the list!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(c, "Failed to add book to the list", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

@@ -16,7 +16,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="60dp"
@@ -24,7 +23,6 @@
             android:scaleType="centerInside"
             android:src="@drawable/logo"
             android:contentDescription="App Logo"/>
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -36,7 +34,6 @@
             android:paddingStart="10dp"/>
     </LinearLayout>
 
-    <!-- Search bar -->
     <LinearLayout
         android:id="@+id/searchBar"
         android:layout_width="0dp"
@@ -46,7 +43,6 @@
         app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <EditText
             android:id="@+id/etSearch"
             android:layout_width="0dp"
@@ -60,7 +56,6 @@
             android:drawablePadding="8dp"/>
     </LinearLayout>
 
-    <!-- Scrollable content -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
@@ -70,13 +65,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:fillViewport="true">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="15dp">
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -85,14 +78,12 @@
                 android:textStyle="bold"
                 android:textColor="@color/lightBlue"
                 android:paddingBottom="5dp"/>
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:weightSum="1"
                 android:layout_marginBottom="10dp">
-
                 <TextView
                     android:id="@+id/tvFantasy"
                     android:layout_width="wrap_content"
@@ -101,7 +92,6 @@
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
                     android:background="@drawable/rounded_search"/>
-
                 <TextView
                     android:id="@+id/tvCoastalMyths"
                     android:layout_width="wrap_content"
@@ -111,7 +101,6 @@
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
                     android:background="@drawable/rounded_search"/>
-
                 <TextView
                     android:id="@+id/tvNewReleases"
                     android:layout_width="wrap_content"
@@ -128,7 +117,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="10dp">
-
                 <TextView
                     android:id="@+id/tvMarineBiology"
                     android:layout_width="wrap_content"
@@ -147,7 +135,6 @@
                     android:backgroundTint="@color/skyBlue"
                     android:background="@drawable/rounded_search"/>
             </LinearLayout>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -161,7 +148,14 @@
                 android:layout_height="260dp"
                 android:layout_marginTop="10dp"
                 android:nestedScrollingEnabled="false"/>
-
+            <TextView
+                android:id="@+id/tvNoRecent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No recently viewed."
+                android:textSize="14sp"
+                android:visibility="gone"
+                android:paddingTop="10dp"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -175,7 +169,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"/>
-
+            <TextView
+                android:id="@+id/tvNoMostRead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No most read books yet."
+                android:textSize="14sp"
+                android:visibility="gone"
+                android:paddingTop="10dp"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

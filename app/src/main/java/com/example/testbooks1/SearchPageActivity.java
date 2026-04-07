@@ -87,64 +87,7 @@ public class SearchPageActivity extends AppCompatActivity {
             callBooks(query);
         }
     }
-    /*
-    public void callBooks(String queryInput) {
-        String query = queryInput.trim().replace(" ", "+");
-        String url = "https://www.googleapis.com/books/v1/volumes?q=" + query + "&key=AIzaSyAycxqRNFLfOCxktkf3cDcWChAc0Cfvk4Y";
 
-        RequestQueue r = Volley.newRequestQueue(c);
-        JsonObjectRequest json = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    try {
-                        progress.setVisibility(View.GONE);
-                        bookList.clear();
-                        if (!response.has("items")) return;
-
-                        JSONArray items = response.getJSONArray("items");
-                        for (int i = 0; i < items.length(); i++) {
-                            JSONObject bookObj = items.getJSONObject(i);
-                            JSONObject volumeInfo = bookObj.getJSONObject("volumeInfo");
-
-                            String id = bookObj.getString("id");
-                            String title = volumeInfo.getString("title");
-                            String author = "Unknown";
-                            if (volumeInfo.has("authors")) {
-                                JSONArray authorsArray = volumeInfo.getJSONArray("authors");
-                                author = authorsArray.getString(0);
-                            }
-                            String description = volumeInfo.optString("description", "No description available");
-                            String publisher = volumeInfo.optString("publisher", "Unknown");
-
-                            String category = "Unknown";
-                            if (volumeInfo.has("categories")) {
-                                JSONArray categoriesArray = volumeInfo.getJSONArray("categories");
-                                if (categoriesArray.length() > 0) {
-                                    category = categoriesArray.getString(0);
-                                }
-                            }
-
-                            String imageUrl = "";
-                            if (volumeInfo.has("imageLinks")) {
-                                imageUrl = volumeInfo
-                                        .getJSONObject("imageLinks")
-                                        .optString("thumbnail", "");
-                                if (imageUrl.startsWith("http://")) {
-                                    imageUrl = imageUrl.replace("http://", "https://");
-                                }
-                            }
-                            bookList.add(new Book(id, title, imageUrl, author, description, publisher, category));
-                        }
-                        adapter.notifyDataSetChanged();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                },
-                error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
-        );
-        r.add(json);
-    }
-
-     */
     public void callBooks(String queryInput) {
         String query = queryInput.trim().replace(" ", "+");
         String url = "https://www.googleapis.com/books/v1/volumes?q=" + query

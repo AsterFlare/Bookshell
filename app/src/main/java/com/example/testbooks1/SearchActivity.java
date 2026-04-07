@@ -3,6 +3,7 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +47,7 @@ public class SearchActivity extends AppCompatActivity {
 
     EditText etSearch;
     TextView tvFantasy, tvCoastalMyths, tvNewReleases, tvMarineBiology, tvClassicSails;
+    TextView tvNoRecent, tvNoMostRead;
     RecyclerView rvBooks, rvRecent;
     BookHorizontalAdapter adapter, recentAdapter;
     List<Book> recentList, bookList;
@@ -73,6 +75,8 @@ public class SearchActivity extends AppCompatActivity {
         tvNewReleases = findViewById(R.id.tvNewReleases);
         tvMarineBiology = findViewById(R.id.tvMarineBiology);
         tvClassicSails = findViewById(R.id.tvClassicSails);
+        tvNoRecent = findViewById(R.id.tvNoRecent);
+        tvNoMostRead = findViewById(R.id.tvNoMostRead);
         rvBooks = findViewById(R.id.rvBooks);
         bookList = new ArrayList<>();
         rvRecent = findViewById(R.id.rvRecent);
@@ -84,15 +88,14 @@ public class SearchActivity extends AppCompatActivity {
         adapter = new BookHorizontalAdapter(c, (ArrayList<Book>) bookList);
         rvBooks.setAdapter(adapter);
 
-        LinearLayoutManager layoutManager2 =
-                new LinearLayoutManager(c, LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager layoutManager2 = new LinearLayoutManager(c, LinearLayoutManager.HORIZONTAL, false);
         rvRecent.setLayoutManager(layoutManager2);
         recentAdapter = new BookHorizontalAdapter(c, (ArrayList<Book>) recentList);
         rvRecent.setAdapter(recentAdapter);
 
         loadRecentBooks();
-        //callBooks("bestseller");
         loadMostReadBooks();
+
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             String query = etSearch.getText().toString().trim();
             if (!query.isEmpty()) {
@@ -129,7 +132,6 @@ public class SearchActivity extends AppCompatActivity {
             }
             return false;
         });
-
     }
 
     private void loadMostReadBooks() {
@@ -138,7 +140,6 @@ public class SearchActivity extends AppCompatActivity {
         userBooksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                // Map: bookId -> Book + read count
                 HashMap<String, BookCount> bookMap = new HashMap<>();
 
                 for (DataSnapshot userSnapshot : snapshot.getChildren()) {
@@ -170,16 +171,21 @@ public class SearchActivity extends AppCompatActivity {
                 // Sort by read count descending
                 List<BookCount> sortedList = new ArrayList<>(bookMap.values());
                 Collections.sort(sortedList, (a, b) -> b.count - a.count);
-
-                // Clear old list and add top books
                 bookList.clear();
                 for (BookCount bc : sortedList) {
                     bookList.add(new Book(
                             bc.bookId, bc.title, bc.imageUrl, bc.author,
                             bc.description, bc.publisher, bc.category, bc.readerLink));
                 }
-
                 adapter.notifyDataSetChanged();
+
+                if (bookList.isEmpty()) {
+                    tvNoMostRead.setVisibility(View.VISIBLE);
+                    rvBooks.setVisibility(View.GONE);
+                } else {
+                    tvNoMostRead.setVisibility(View.GONE);
+                    rvBooks.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -188,67 +194,6 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
     }
-
-    /*
-    public void callBooks(String queryInput) {
-
-        String query = queryInput.trim().replace(" ", "+");
-        String url = "https://www.googleapis.com/books/v1/volumes?q=" + query + "&key=AIzaSyAycxqRNFLfOCxktkf3cDcWChAc0Cfvk4Y";
-
-        RequestQueue r = Volley.newRequestQueue(c);
-
-        JsonObjectRequest json = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    try {
-                        bookList.clear();
-                        if (!response.has("items")) return;
-
-                        JSONArray items = response.getJSONArray("items");
-
-                        for (int i = 0; i < items.length(); i++) {
-                            JSONObject bookObj = items.getJSONObject(i);
-                            JSONObject volumeInfo = bookObj.getJSONObject("volumeInfo");
-
-                            String id = bookObj.getString("id");
-                            String title = volumeInfo.getString("title");
-                            String author = "Unknown";
-                            if (volumeInfo.has("authors")) {
-                                JSONArray authorsArray = volumeInfo.getJSONArray("authors");
-                                author = authorsArray.getString(0);
-                            }
-                            String description = volumeInfo.optString("description", "No description available");
-                            String publisher = volumeInfo.optString("publisher", "Unknown");
-
-                            String category = "Unknown";
-                            if (volumeInfo.has("categories")) {
-                                JSONArray categoriesArray = volumeInfo.getJSONArray("categories");
-                                if (categoriesArray.length() > 0) {
-                                    category = categoriesArray.getString(0);
-                                }
-                            }
-
-                            String imageUrl = "";
-                            if (volumeInfo.has("imageLinks")) {
-                                imageUrl = volumeInfo
-                                        .getJSONObject("imageLinks")
-                                        .optString("thumbnail", "");
-                                if (imageUrl.startsWith("http://")) {
-                                    imageUrl = imageUrl.replace("http://", "https://");
-                                }
-                            }
-                            bookList.add(new Book(id, title, imageUrl, author, description, publisher, category, readerLink));
-                        }
-                        adapter.notifyDataSetChanged();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                },
-                error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
-        );
-        r.add(json);
-    }
-
-     */
 
     private void loadRecentBooks() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -273,8 +218,15 @@ public class SearchActivity extends AppCompatActivity {
 
                         Collections.reverse(recentList);
                         recentAdapter.notifyDataSetChanged();
-                    }
 
+                        if (recentList.isEmpty()) {
+                            tvNoRecent.setVisibility(View.VISIBLE);
+                            rvRecent.setVisibility(View.GONE);
+                        } else {
+                            tvNoRecent.setVisibility(View.GONE);
+                            rvRecent.setVisibility(View.VISIBLE);
+                        }
+                    }
                     @Override
                     public void onCancelled(DatabaseError error) {}
                 });

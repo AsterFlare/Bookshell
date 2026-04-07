@@ -98,7 +98,30 @@
         </LinearLayout>
 
 
+
     </androidx.core.widget.NestedScrollView>
+
+    <FrameLayout
+        android:id="@+id/fabContainer"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:backgroundTint="@color/lightBlue"
+        android:clipToOutline="true"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:outlineProvider="background">
+        <ImageView
+            android:id="@+id/btnCreateList"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_floating_add"
+        android:contentDescription="Add Book" />
+    </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"

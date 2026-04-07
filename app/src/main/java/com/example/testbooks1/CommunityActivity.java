@@ -3,7 +3,10 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -34,6 +37,7 @@ public class CommunityActivity extends AppCompatActivity {
     ArrayList<CommunityItem> communityList;
     TextView tvNoCommunity;
     CommunityAdapter adapter;
+    ImageView btnCreateList;
     BottomNavigationView bottomNav;
     Context c;
 
@@ -53,16 +57,16 @@ public class CommunityActivity extends AppCompatActivity {
 
     public void initialize() {
         progress = findViewById(R.id.progressBooks);
-        progress.setVisibility(View.VISIBLE);
         tvNoCommunity = findViewById(R.id.tvNoCommunity);
-        tvNoCommunity.setVisibility(View.GONE);
-
         recyclerView = findViewById(R.id.communityRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(c));
         communityList = new ArrayList<>();
         adapter = new CommunityAdapter(c, communityList);
         recyclerView.setAdapter(adapter);
+        btnCreateList = findViewById(R.id.btnCreateList);
+        loadCommunityData();
 
+        btnCreateList.setOnClickListener(v -> startActivity(new Intent(c, CreateListActivity.class)));
         bottomNav = findViewById(R.id.bottomNavigationView);
         bottomNav.setSelectedItemId(R.id.nav_community);
         bottomNav.setOnItemSelectedListener(item -> {
@@ -74,7 +78,7 @@ public class CommunityActivity extends AppCompatActivity {
                 startActivity(new Intent(c, SearchActivity.class));
                 return true;
             } else if (id == R.id.nav_community) {
-                //startActivity(new Intent(c, CommunityActivity.class));
+                startActivity(new Intent(c, CommunityActivity.class));
                 return true;
             } else if (id == R.id.nav_library) {
                 startActivity(new Intent(c, LibraryActivity.class));
@@ -85,6 +89,11 @@ public class CommunityActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    private void loadCommunityData() {
+        progress.setVisibility(View.VISIBLE);
+        tvNoCommunity.setVisibility(View.GONE);
 
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
         db.child("communityLists").addListenerForSingleValueEvent(new ValueEventListener() {

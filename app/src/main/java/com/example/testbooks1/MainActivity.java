@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +17,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
@@ -24,6 +26,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.example.testbooks1.Adapter.BookAdapter;
+import com.example.testbooks1.Adapter.BookRecommendedAdapter;
 import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.Book;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -41,6 +44,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -49,9 +53,12 @@ public class MainActivity extends AppCompatActivity {
     TextView tvCurrentlyReading;
     ShapeableImageView bookImage;
     List<Book> bookList;
-    RecyclerView rvBooks;
-    BookAdapter adapter;
     ProgressBar progress;
+    RecyclerView rvBooks, rvRecommended;
+    BookAdapter adapter;
+    BookRecommendedAdapter recommendedAdapter;
+    ArrayList<Book> recommendedList;
+    LinearLayout recommendedSection;
     BottomNavigationView bottomNav;
     Context c;
 
@@ -80,9 +87,22 @@ public class MainActivity extends AppCompatActivity {
         adapter = new BookAdapter(c, (ArrayList<Book>) bookList);
         rvBooks.setAdapter(adapter);
 
+        rvRecommended = findViewById(R.id.rvRecommended);
+        recommendedList = new ArrayList<>();
+
+        rvRecommended.setLayoutManager(new LinearLayoutManager(c, LinearLayoutManager.VERTICAL, false)
+        );
+
+        recommendedAdapter = new BookRecommendedAdapter(c, recommendedList);
+        rvRecommended.setAdapter(recommendedAdapter);
+
         progress = findViewById(R.id.progressBooks);
         progress.setVisibility(View.VISIBLE);
-        callBooks("bestseller");
+        recommendedSection = findViewById(R.id.recommendedSection);
+        recommendedSection.setVisibility(View.GONE);
+
+        loadPersonalizedBooks();
+        //callBooks("bestseller");
 
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             String query = etSearch.getText().toString().trim();
@@ -223,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
     public void callBooks(String queryInput) {
         String query = queryInput.trim().replace(" ", "+");
         String url = "https://www.googleapis.com/books/v1/volumes?q=" + query
-                + "&maxResults=10"
+                + "&maxResults=6"
                 + "&printType=books"
                 + "&filter=ebooks"
                 + "&key=AIzaSyAycxqRNFLfOCxktkf3cDcWChAc0Cfvk4Y";
@@ -284,8 +304,8 @@ public class MainActivity extends AppCompatActivity {
                             }
                             bookList.add(new Book(id, title, imageUrl, author, description, publisher, category, readerLink));
                         }
-
                         adapter.notifyDataSetChanged();
+                        recommendedSection.setVisibility(View.VISIBLE);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -293,6 +313,128 @@ public class MainActivity extends AppCompatActivity {
                 error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
         );
         r.add(json);
+    }
+    public void callRecommendedBooks(String queryInput) {
+        String query = queryInput.trim().replace(" ", "+");
+
+        String url = "https://www.googleapis.com/books/v1/volumes?q=" + query
+                + "&maxResults=2"
+                + "&printType=books"
+                + "&filter=ebooks"
+                + "&key=AIzaSyAycxqRNFLfOCxktkf3cDcWChAc0Cfvk4Y";
+
+        RequestQueue r = Volley.newRequestQueue(c);
+
+        JsonObjectRequest json = new JsonObjectRequest(Request.Method.GET, url, null,
+                response -> {
+                    try {
+                        recommendedList.clear();
+
+                        if (!response.has("items")) return;
+
+                        JSONArray items = response.getJSONArray("items");
+
+                        int count = 0;
+
+                        for (int i = 0; i < items.length(); i++) {
+                            if (count == 2) break;
+
+                            JSONObject bookObj = items.getJSONObject(i);
+                            JSONObject volumeInfo = bookObj.getJSONObject("volumeInfo");
+                            JSONObject accessInfo = bookObj.getJSONObject("accessInfo");
+
+                            String viewability = accessInfo.optString("viewability", "NONE");
+                            boolean embeddable = accessInfo.optBoolean("embeddable", false);
+
+                            if (!(viewability.equals("ALL_PAGES") || viewability.equals("PARTIAL")) || !embeddable) {
+                                continue;
+                            }
+
+                            String readerLink = accessInfo.optString("webReaderLink", "");
+
+                            String id = bookObj.getString("id");
+                            String title = volumeInfo.getString("title");
+
+                            String author = "Unknown";
+                            if (volumeInfo.has("authors")) {
+                                author = volumeInfo.getJSONArray("authors").getString(0);
+                            }
+
+                            String description = volumeInfo.optString("description", "");
+                            String publisher = volumeInfo.optString("publisher", "");
+
+                            String category = "Unknown";
+                            if (volumeInfo.has("categories")) {
+                                category = volumeInfo.getJSONArray("categories").getString(0);
+                            }
+
+                            String imageUrl = "";
+                            if (volumeInfo.has("imageLinks")) {
+                                imageUrl = volumeInfo.getJSONObject("imageLinks")
+                                        .optString("thumbnail", "");
+                                if (imageUrl.startsWith("http://")) {
+                                    imageUrl = imageUrl.replace("http://", "https://");
+                                }
+                            }
+
+                            recommendedList.add(new Book(id, title, imageUrl, author, description, publisher, category, readerLink));
+                            count++;
+                        }
+
+                        recommendedAdapter.notifyDataSetChanged();
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
+        );
+
+        r.add(json);
+    }
+    private void loadPersonalizedBooks() {
+        String uid = AuthManager.getUid();
+        if (uid == null) {
+            callBooks("bestseller");
+            return;
+        }
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                .getReference("user_books")
+                .child(uid);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                HashMap<String, Integer> categoryCount = new HashMap<>();
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String category = ds.child("category").getValue(String.class);
+                    if (category != null && !category.equals("Unknown")) {
+                        categoryCount.put(category,
+                                categoryCount.getOrDefault(category, 0) + 1);
+                    }
+                }
+                String topCategory = null;
+                int max = 0;
+
+                for (String cat : categoryCount.keySet()) {
+                    if (categoryCount.get(cat) > max) {
+                        max = categoryCount.get(cat);
+                        topCategory = cat;
+                    }
+                }
+
+                if (topCategory != null) {
+                    callBooks(topCategory + " popular books");
+                    callRecommendedBooks(topCategory);
+                } else {
+                    callBooks("bestseller");
+                    callRecommendedBooks("popular books");
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {
+                callBooks("bestseller");
+            }
+        });
     }
 
     private void openSearchPage(String query) {

@@ -9,6 +9,10 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">12%</item>
     </style>
+    <style name="recommendedBookImage">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">14%</item>
+    </style>
     <style name="recentlyBookImage">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">24%</item>
