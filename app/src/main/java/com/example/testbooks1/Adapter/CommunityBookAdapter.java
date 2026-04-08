@@ -35,9 +35,9 @@ public class CommunityBookAdapter extends RecyclerView.Adapter<CommunityBookAdap
         public ViewHolder(View itemView) {
             super(itemView);
             imgBook = itemView.findViewById(R.id.imgBook);
-            txtUserFullName = itemView.findViewById(R.id.txtUserFullName);
-            //txtListTitle = itemView.findViewById(R.id.txtListTitle);
-            txtListDescription = itemView.findViewById(R.id.txtListDescription);
+            txtUserFullName = itemView.findViewById(R.id.tvFullName);
+            txtListTitle = itemView.findViewById(R.id.tvListTitle);
+            txtListDescription = itemView.findViewById(R.id.tvListDescription);
         }
     }
     @Override
@@ -55,7 +55,7 @@ public class CommunityBookAdapter extends RecyclerView.Adapter<CommunityBookAdap
         holder.txtUserFullName.setText(book.author);
 
         Glide.with(context)
-                .load(book.image)
+                .load(book.imageUrl)
                 .into(holder.imgBook);
 
         holder.itemView.setOnClickListener(v -> {

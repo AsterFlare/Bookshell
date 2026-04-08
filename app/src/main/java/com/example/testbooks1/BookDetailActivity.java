@@ -123,6 +123,7 @@ public class BookDetailActivity extends AppCompatActivity {
                 .getReference("reviews")
                 .child(bookId);
 
+
         String title = getIntent().getStringExtra("title");
         String image = getIntent().getStringExtra("image");
         String author = getIntent().getStringExtra("author");
@@ -207,30 +208,53 @@ public class BookDetailActivity extends AppCompatActivity {
             DatabaseReference listsRef = FirebaseDatabase.getInstance()
                     .getReference("communityLists")
                     .child(uid);
+
             listsRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        ArrayList<String> listTitles = new ArrayList<>();
-                        ArrayList<String> listIds = new ArrayList<>();
-                        for (DataSnapshot ds : snapshot.getChildren()) {
-                            String listId = ds.getKey();
-                            listIds.add(listId);
-                            listTitles.add(listId);
-                        }
-                        String[] titlesArray = listTitles.toArray(new String[0]);
-
-                        new AlertDialog.Builder(c)
-                                .setTitle("Select a List")
-                                .setItems(titlesArray, (dialog, which) -> {
-                                    String selectedListId = listIds.get(which);
-                                    addBookToUserList(selectedListId);
-                                })
-                                .setNegativeButton("Cancel", null)
-                                .show();
-                    } else {
-                        Toast.makeText(c, "No current list existing.", Toast.LENGTH_SHORT).show();
+                    if (!snapshot.exists()) {
+                        Toast.makeText(c, "No current existing list.", Toast.LENGTH_SHORT).show();
+                        return;
                     }
+
+                    ArrayList<String> listTitles = new ArrayList<>();
+                    ArrayList<String> listIds = new ArrayList<>();
+
+                    for (DataSnapshot ds : snapshot.getChildren()) {
+                        String listId = ds.getKey();
+                        if (!ds.child("books").hasChild(bookId)) {
+                            listIds.add(listId);
+                            String title = ds.child("title").getValue(String.class);
+                            listTitles.add(title != null ? title : listId);
+                        }
+                    }
+
+                    if (listTitles.isEmpty()) {
+                        Toast.makeText(c, "Book is already in all your lists.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    boolean[] checkedItems = new boolean[listTitles.size()];
+                    ArrayList<Integer> selectedIndices = new ArrayList<>();
+
+                    new AlertDialog.Builder(c)
+                            .setTitle("Add Book to...")
+                            .setMultiChoiceItems(listTitles.toArray(new String[0]), checkedItems,
+                                    (dialog, which, isChecked) -> {
+                                        if (isChecked) {
+                                            selectedIndices.add(which);
+                                        } else {
+                                            selectedIndices.remove(Integer.valueOf(which));
+                                        }
+                                    })
+                            .setPositiveButton("Add", (dialog, which) -> {
+                                for (int index : selectedIndices) {
+                                    String selectedListId = listIds.get(index);
+                                    addBookToUserList(selectedListId);
+                                }
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show();
                 }
 
                 @Override
@@ -498,8 +522,7 @@ public class BookDetailActivity extends AppCompatActivity {
 
         UserBook userBook = new UserBook(
                 tvTitle.getText().toString(),
-                "Added to List",
-                imageUrl,
+                imageUrl ,
                 System.currentTimeMillis(),
                 getIntent().getStringExtra("author"),
                 getIntent().getStringExtra("description"),
@@ -508,7 +531,7 @@ public class BookDetailActivity extends AppCompatActivity {
 
         listBooksRef.setValue(userBook).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                Toast.makeText(c, "Book added to the list!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(c, "Book added to the list.", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(c, "Failed to add book to the list", Toast.LENGTH_SHORT).show();
             }

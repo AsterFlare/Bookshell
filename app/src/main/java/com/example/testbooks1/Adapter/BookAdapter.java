@@ -72,6 +72,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
                 .apply(RequestOptions.bitmapTransform(new RoundedCorners(32)))
                 .into(holder.ivBook);
 
+        //save each book clicked to recently viewed
         holder.itemView.setOnClickListener(v -> {
             FirebaseAuth auth = FirebaseAuth.getInstance();
             FirebaseUser user = auth.getCurrentUser();
@@ -90,9 +91,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
                         book.getImageUrl(),
                         book.getAuthor(),
                         book.getDescription(),
-                        book.getPublisher(),
-                        book.getCategory(),
-                        book.getReaderLink()
+                        book.getCategory()
                 );
                 recentBook.timestamp = System.currentTimeMillis();
 
@@ -104,9 +103,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
             intent.putExtra("image", book.getImageUrl());
             intent.putExtra("author", book.getAuthor());
             intent.putExtra("description", book.getDescription());
-            intent.putExtra("publisher", book.getPublisher());
             intent.putExtra("category", book.getCategory());
-            intent.putExtra("readerLink", book.getReaderLink());
             context.startActivity(intent);
         });
     }

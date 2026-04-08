@@ -27,12 +27,13 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Bookshell"
-            android:textSize="25sp"
-            android:textStyle="bold"
-            android:textColor="@color/lightBlue"
             android:layout_gravity="center"
-            android:paddingStart="10dp"/>
+            android:paddingStart="10dp"
+            android:text="Bookshell"
+            android:textColor="@color/lightBlue"
+            android:textSize="26sp"
+            android:fontFamily="@font/jakarta_extra_bold"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -55,6 +56,7 @@
             android:padding="10dp"
             android:inputType="text"
             android:drawableStart="@drawable/ic_search"
+            android:fontFamily="@font/jakarta_light"
             android:drawablePadding="8dp"/>
     </LinearLayout>
 
@@ -87,17 +89,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="CURATION"
-                android:textSize="15sp"
-                android:textStyle="bold"
+                android:textSize="14sp"
+                android:fontFamily="@font/jakarta_extra_bold"
                 android:textColor="@color/lightBlue"
                 android:layout_marginLeft="14dp"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Books Today"
-                android:textSize="26sp"
-                android:textStyle="bold"
+                android:textSize="28sp"
                 android:textColor="@color/black"
+                android:fontFamily="@font/jakarta_extra_bold"
                 android:layout_marginLeft="14dp"/>
             <ProgressBar
                 android:id="@+id/progressBooks"
@@ -123,15 +125,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Recommended For You"
-                    android:textSize="24sp"
+                    android:textSize="26sp"
                     android:textColor="@color/white"
-                    android:textStyle="bold"/>
+                    android:fontFamily="@font/jakarta_extra_bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Based on your favorite categories"
                     android:textSize="16sp"
                     android:textColor="@color/white"
+                    android:fontFamily="@font/jakarta_light"
                     android:layout_marginBottom="8dp"/>
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvRecommended"
@@ -164,8 +167,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
+                        android:textSize="20sp"
+                        android:fontFamily="@font/jakarta_extra_bold"
                         android:text="Currently Reading"/>
                     <ImageView
                         android:layout_width="22dp"
@@ -196,7 +199,8 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:textStyle="bold"
-                        android:text=""/>
+                        android:text=""
+                        android:fontFamily="@font/jakarta_bold"/>
                 </LinearLayout>
             </LinearLayout>
 

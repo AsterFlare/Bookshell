@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -34,53 +35,35 @@ public class UserBooksAdapter extends RecyclerView.Adapter<UserBooksAdapter.View
         this.listener = listener;
     }
 
+    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_user_book, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CommunityBook book = books.get(position);
 
-        holder.tvTitle.setText(book.title != null ? book.title : book.bookTitle);
+        holder.tvTitle.setText(book.title);
         holder.tvAuthor.setText(book.author);
-        Glide.with(context).load(book.image).into(holder.ivBook);
+        Glide.with(context).load(book.imageUrl).into(holder.ivBook);
 
-        holder.checkIcon.setVisibility(selectedBookIds.contains(book.bookId) ? View.VISIBLE : View.GONE);
+        boolean isSelected = selectedBookIds != null && selectedBookIds.contains(book.bookId);
+        holder.checkIcon.setVisibility(isSelected ? View.VISIBLE : View.GONE);
 
-        /*
         holder.itemView.setOnClickListener(v -> {
-            boolean isSelected = selectedBookIds.contains(book.bookId);
+            boolean currentlySelected = selectedBookIds.contains(book.bookId);
 
-            if (isSelected) {
+            if (currentlySelected) {
                 selectedBookIds.remove(book.bookId);
                 if (listener != null) listener.onBookSelected(book, false);
             } else {
                 selectedBookIds.add(book.bookId);
                 if (listener != null) listener.onBookSelected(book, true);
             }
-            notifyItemChanged(position);
-        });
-         */
-        holder.itemView.setOnClickListener(v -> {
-            boolean isSelected = selectedBookIds.contains(book.bookId);
-
-            // Prevent deselecting first book
-            if (book == books.get(0) && isSelected) {
-                //Toast.makeText(context, "First book must always be selected", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (isSelected) {
-                selectedBookIds.remove(book.bookId);
-                if (listener != null) listener.onBookSelected(book, false);
-            } else {
-                selectedBookIds.add(book.bookId);
-                if (listener != null) listener.onBookSelected(book, true);
-            }
-            notifyItemChanged(position);
+            notifyItemChanged(holder.getAdapterPosition());
         });
     }
 
@@ -93,7 +76,7 @@ public class UserBooksAdapter extends RecyclerView.Adapter<UserBooksAdapter.View
         ImageView ivBook, checkIcon;
         TextView tvTitle, tvAuthor;
 
-        public ViewHolder(View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivBook = itemView.findViewById(R.id.ivBook);
             checkIcon = itemView.findViewById(R.id.checkIcon);

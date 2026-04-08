@@ -14,20 +14,15 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="10dp">
-
-        <!-- Image container -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="160dp">
-
             <ImageView
                 android:id="@+id/ivBook"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:background="@drawable/rounded_image_bg"/>
-
-            <!-- Check icon -->
             <ImageView
                 android:id="@+id/checkIcon"
                 android:layout_width="32dp"
@@ -39,8 +34,6 @@
                 android:src="@android:drawable/checkbox_on_background"
                 android:visibility="gone"/>
         </FrameLayout>
-
-        <!-- Title -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
@@ -51,13 +44,12 @@
             android:layout_marginTop="6dp"
             android:maxLines="2"
             android:ellipsize="end"/>
-
-        <!-- Author -->
         <TextView
             android:id="@+id/tvAuthor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="12sp"
+            android:fontFamily="@font/jakarta_medium"
             android:textColor="@android:color/darker_gray"/>
 
     </LinearLayout>

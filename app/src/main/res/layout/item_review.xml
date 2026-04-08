@@ -41,16 +41,17 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:textStyle="bold"
+                        android:fontFamily="@font/jakarta_extra_bold"
                         android:textSize="16sp"
-                        android:text=""/>
+                        android:text="Full Name"/>
                     <TextView
                         android:id="@+id/tvTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12sp"
                         android:textColor="@color/darkerGray"
-                        android:text=""/>
+                        android:text=""
+                        android:fontFamily="@font/jakarta_light"/>
                 </LinearLayout>
                 <RatingBar
                     android:id="@+id/ratingBarItem"
@@ -63,12 +64,12 @@
                     android:secondaryProgressTint="@color/yellow"/>
             </LinearLayout>
         </LinearLayout>
-
         <TextView
             android:id="@+id/tvComment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14dp"
-            android:text=""/>
+            android:text=""
+            android:fontFamily="@font/jakarta_medium"/>
     </LinearLayout>
 </LinearLayout>

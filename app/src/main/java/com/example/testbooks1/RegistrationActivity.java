@@ -40,10 +40,15 @@ public class RegistrationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registration);
+        c = this;
         initialize();
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.activity_registration), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            int left = v.getPaddingLeft() + systemBars.left;
+            int top = v.getPaddingTop() + systemBars.top;
+            int right = v.getPaddingRight() + systemBars.right;
+            int bottom = v.getPaddingBottom() + systemBars.bottom;
+            v.setPadding(left, top, right, bottom);
             return insets;
         });
     }
@@ -90,7 +95,7 @@ public class RegistrationActivity extends AppCompatActivity {
                                     ref.child(uid).setValue(newUser).addOnCompleteListener(dbTask -> {
                                         if (dbTask.isSuccessful()) {
                                             user.sendEmailVerification();
-                                            Toast.makeText(c, "Registration successful. Verify your email.", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(c, "Registration successful. Please verify your email.", Toast.LENGTH_LONG).show();
                                             startActivity(new Intent(c, LoginActivity.class));
                                         } else {
                                             Toast.makeText(c, "Failed to save user data.", Toast.LENGTH_SHORT).show();
@@ -119,7 +124,7 @@ public class RegistrationActivity extends AppCompatActivity {
         tvAlreadyRegistered.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(c, MainActivity.class); //loginActivity
+                Intent intent = new Intent(c, LoginActivity.class); //loginActivity
                 startActivity(intent);
             }
         });

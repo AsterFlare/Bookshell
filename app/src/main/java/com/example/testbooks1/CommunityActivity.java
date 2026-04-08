@@ -127,7 +127,7 @@ public class CommunityActivity extends AppCompatActivity {
                         if (book != null) books.add(book);
                     }
 
-                    String firstBookImage = books.size() > 0 ? books.get(0).image : null;
+                    String firstBookImage = books.size() > 0 ? books.get(0).imageUrl : null;
                     String userId = listSnap.getRef().getParent().getKey();
                     final String fUserId = userId;
 

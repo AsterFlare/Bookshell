@@ -39,24 +39,24 @@
                 android:text="Title"
                 android:textSize="18sp"
                 android:textColor="@color/darkerGray"
-                android:textStyle="bold" />
+                android:fontFamily="@font/jakarta_extra_bold" />
             <TextView
                 android:id="@+id/tvAuthor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Author"
-                android:textStyle="bold"
+                android:fontFamily="@font/jakarta_bold"
                 android:textSize="13sp"
                 android:textColor="@color/navyBlue" />
-            <TextView
-                android:id="@+id/tvSearchInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Excerpt"
-                android:textStyle="bold"
-                android:textSize="13sp"/>
+<!--            <TextView-->
+<!--                android:id="@+id/tvDescription-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:text="Excerpt"-->
+<!--                android:textStyle="bold"-->
+<!--                android:textSize="13sp"/>-->
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

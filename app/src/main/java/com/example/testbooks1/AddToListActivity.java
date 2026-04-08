@@ -17,7 +17,6 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -29,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.testbooks1.Adapter.SelectedBooksAdapter;
 import com.example.testbooks1.Adapter.UserBooksAdapter;
+import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.CommunityBook;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
@@ -56,7 +56,6 @@ public class AddToListActivity extends AppCompatActivity {
     CommunityBook firstBookFromIntent;
     MaterialButton btnShare;
     DatabaseReference communityRef;
-    FirebaseUser user;
     ImageView btnBack;
     private ImageView ivCoverImage;
     private Uri coverImageUri;
@@ -162,7 +161,7 @@ public class AddToListActivity extends AppCompatActivity {
         rvUserBooks.setAdapter(userBooksAdapter);
         rvUserBooks.setNestedScrollingEnabled(true);
 
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        //user = FirebaseAuth.getInstance().getCurrentUser();
         communityRef = FirebaseDatabase.getInstance().getReference("communityLists");
 
         String firstBookId = getIntent().getStringExtra("bookId");
@@ -223,10 +222,11 @@ public class AddToListActivity extends AppCompatActivity {
     }
      */
     private void loadUserBooks() {
-        if (user == null) return;
+        String uid = AuthManager.getUid();
+        if (uid == null) return;
         DatabaseReference userBooksRef = FirebaseDatabase.getInstance()
                 .getReference("user_books")
-                .child(user.getUid());
+                .child(uid);
         userBooksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -240,13 +240,11 @@ public class AddToListActivity extends AppCompatActivity {
 
                     CommunityBook book = new CommunityBook();
                     book.bookId = bookId;
-                    book.title = ds.child("bookTitle").getValue(String.class);
+                    book.title = ds.child("title").getValue(String.class);
                     book.author = ds.child("author").getValue(String.class);
-                    book.image = ds.child("imageUrl").getValue(String.class);
+                    book.imageUrl = ds.child("imageUrl").getValue(String.class);
                     book.category = ds.child("category").getValue(String.class);
                     book.description = ds.child("description").getValue(String.class);
-                    book.snippet = ds.child("textSnippet").getValue(String.class);
-                    book.normalize();
                     if (book.title != null) {
                         userBooks.add(book);
                     }
@@ -260,21 +258,25 @@ public class AddToListActivity extends AppCompatActivity {
     }
 
     private void saveCommunityList() {
-        if (user == null) return;
+        String uid = AuthManager.getUid();
+        if (uid == null) return;
 
-        if (selectedBooks.size() <= 1) {
-            Toast.makeText(this, "Please select at least 2 books to create a list", Toast.LENGTH_SHORT).show();
+        if (selectedBooks.size() < 2) {
+            Toast.makeText(this, "Please select at least 2 books.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String uid = user.getUid();
         String title = etTitle.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
 
         if (title.isEmpty()) {
-            Toast.makeText(this, "Enter list title", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter a title.", Toast.LENGTH_SHORT).show();
+            return;
+        } if (description.isEmpty()) {
+            Toast.makeText(this, "Please enter a description.", Toast.LENGTH_SHORT).show();
             return;
         }
+
         String listId = communityRef.child(uid).push().getKey();
         DatabaseReference listRef = communityRef.child(uid).child(listId);
         listRef.child("title").setValue(title);
@@ -288,12 +290,12 @@ public class AddToListActivity extends AppCompatActivity {
         }
 
         for (CommunityBook book : selectedBooks) {
-            String finalTitle = book.title != null ? book.title : book.bookTitle;
-            String finalImage = book.image != null ? book.image : book.imageUrl;
+            // finalTitle = book.title != null ? book.title : book.bookTitle;
+            //String finalImage = book.image != null ? book.image : book.imageUrl;
             HashMap<String, Object> map = new HashMap<>();
-            map.put("title", finalTitle);
+            map.put("title", book.title);
             map.put("author", book.author);
-            map.put("image", finalImage);
+            map.put("imageUrl", book.imageUrl);
             map.put("category", book.category);
             map.put("description", book.description);
             listRef.child("books").child(book.bookId).setValue(map);

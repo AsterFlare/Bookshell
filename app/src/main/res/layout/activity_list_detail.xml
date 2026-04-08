@@ -30,7 +30,7 @@
             android:id="@+id/btnBack"
             android:layout_width="20dp"
             android:layout_height="30dp"
-            android:layout_marginLeft="12dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginVertical="12dp"
             android:layout_marginBottom="12dp"
             android:clickable="true"
@@ -56,25 +56,53 @@
             <TextView
                 android:id="@+id/tvListTitle"
                 android:textSize="28sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/jakarta_extra_bold"
+                android:textColor="@color/black"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="List Title"/>
-            <TextView
-                android:id="@+id/tvListDescription"
-                android:textSize="16sp"
+
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Description goes here"
-                android:background="@drawable/rounded_btn_container"
-                android:padding="10dp"
-                android:layout_marginTop="4dp"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#DDDDDD"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"/>
+                android:background="@drawable/rounded_cnt"
+                android:clipToOutline="true"
+                android:backgroundTint="#CCF0F0F8">
+                <View
+                    android:layout_width="180dp"
+                    android:layout_height="180dp"
+                    android:layout_gravity="bottom|end"
+                    android:layout_marginTop="-60dp"
+                    android:layout_marginEnd="-60dp"
+                    android:background="@drawable/circle_overlay"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="22dp">
+                    <TextView
+                        android:id="@+id/tvListDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Text here"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/jakarta_medium"
+                        android:layout_marginTop="6dp"
+                        android:justificationMode="inter_word"
+                        android:lineSpacingExtra="6dp"/>
+                </LinearLayout>
+            </FrameLayout>
+
+<!--            <TextView-->
+<!--                android:id="@+id/tvListDescription"-->
+<!--                android:textSize="16sp"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="Description goes here"-->
+<!--                android:background="@drawable/rounded_btn_container"-->
+<!--                android:padding="10dp"-->
+<!--                android:layout_marginTop="4dp"/>-->
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -84,11 +112,12 @@
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
+                    android:layout_marginTop="4dp"
                     android:layout_marginRight="10dp"
                     android:src="@drawable/ic_collection"/>
                 <TextView
                     android:textSize="24sp"
-                    android:textStyle="bold"
+                    android:fontFamily="@font/jakarta_extra_bold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="The Collection"
@@ -114,26 +143,27 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/rounded_btn_container"
-                android:paddingStart="12dp"
+                android:paddingStart="22dp"
                 android:paddingEnd="12dp">
                 <EditText
                     android:id="@+id/etComment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Add a comment"
+                    android:fontFamily="@font/jakarta_medium"
                     android:background="@android:color/transparent"
                     android:paddingEnd="40dp"
                     android:inputType="text"/>
                 <ImageView
                     android:id="@+id/btnSubmitComment"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:layout_gravity="end|center_vertical"
                     android:src="@drawable/ic_submit_comment"
-                    android:contentDescription="Search"
                     android:clickable="true"
                     android:focusable="true"/>
             </FrameLayout>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerComments"
                 android:layout_width="match_parent"

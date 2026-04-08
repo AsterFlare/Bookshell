@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.testbooks1.Adapter.UserBooksAdapter;
+import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.CommunityBook;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
@@ -49,7 +50,7 @@ public class CreateListActivity extends AppCompatActivity {
     HashSet<String> selectedBookIds;
     MaterialButton btnShare;
     DatabaseReference communityRef;
-    FirebaseUser user;
+    //FirebaseUser user;
     ImageView btnBack, ivCoverImage;
     Uri coverImageUri;
     String coverImageBase64;
@@ -105,7 +106,7 @@ public class CreateListActivity extends AppCompatActivity {
         rvUserBooks.setAdapter(userBooksAdapter);
         rvUserBooks.setNestedScrollingEnabled(true);
 
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        //user = FirebaseAuth.getInstance().getCurrentUser();
         communityRef = FirebaseDatabase.getInstance().getReference("communityLists");
 
         loadUserBooks();
@@ -115,11 +116,12 @@ public class CreateListActivity extends AppCompatActivity {
     }
 
     private void loadUserBooks() {
-        if (user == null) return;
+        String uid = AuthManager.getUid();
+        if (uid == null) return;
 
         DatabaseReference userBooksRef = FirebaseDatabase.getInstance()
                 .getReference("user_books")
-                .child(user.getUid());
+                .child(uid);
 
         userBooksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -128,13 +130,11 @@ public class CreateListActivity extends AppCompatActivity {
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     CommunityBook book = new CommunityBook();
                     book.bookId = ds.getKey();
-                    book.title = ds.child("bookTitle").getValue(String.class);
+                    book.title = ds.child("title").getValue(String.class);
                     book.author = ds.child("author").getValue(String.class);
-                    book.image = ds.child("imageUrl").getValue(String.class);
+                    book.imageUrl = ds.child("imageUrl").getValue(String.class);
                     book.category = ds.child("category").getValue(String.class);
                     book.description = ds.child("description").getValue(String.class);
-                    book.snippet = ds.child("textSnippet").getValue(String.class);
-                    book.normalize();
                     if (book.title != null) userBooks.add(book);
                 }
                 userBooksAdapter.notifyDataSetChanged();
@@ -146,9 +146,10 @@ public class CreateListActivity extends AppCompatActivity {
     }
 
     private void saveCommunityList() {
-        if (user == null) return;
+        String uid = AuthManager.getUid();
+        if (uid == null) return;
         if (selectedBooks.size() < 2) {
-            Toast.makeText(this, "Please select at least 2 books", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please select at least 2 books.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -156,11 +157,13 @@ public class CreateListActivity extends AppCompatActivity {
         String description = etDescription.getText().toString().trim();
 
         if (title.isEmpty()) {
-            Toast.makeText(this, "Enter list title", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter a title.", Toast.LENGTH_SHORT).show();
+            return;
+        } if (description.isEmpty()) {
+            Toast.makeText(this, "Please enter a description.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String uid = user.getUid();
         String listId = communityRef.child(uid).push().getKey();
         DatabaseReference listRef = communityRef.child(uid).child(listId);
         listRef.child("title").setValue(title);
@@ -176,13 +179,11 @@ public class CreateListActivity extends AppCompatActivity {
             map.put("bookId", book.bookId);
             map.put("title", book.title);
             map.put("author", book.author);
-            map.put("image", book.image);
+            map.put("image", book.imageUrl);
             map.put("category", book.category);
             map.put("description", book.description);
-            map.put("textSnippet", book.snippet);
             listRef.child("books").child(book.bookId).setValue(map);
         }
-
         Toast.makeText(c, "List shared successfully", Toast.LENGTH_SHORT).show();
         finish();
     }

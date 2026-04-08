@@ -27,9 +27,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Bookshell"
-            android:textSize="25sp"
-            android:textStyle="bold"
+            android:textSize="26sp"
             android:textColor="@color/lightBlue"
+            android:fontFamily="@font/jakarta_extra_bold"
             android:layout_gravity="center"
             android:paddingStart="10dp"/>
     </LinearLayout>
@@ -52,6 +52,7 @@
             android:background="@drawable/rounded_search"
             android:padding="10dp"
             android:inputType="text"
+            android:fontFamily="@font/jakarta_light"
             android:drawableStart="@drawable/ic_search"
             android:drawablePadding="8dp"/>
     </LinearLayout>
@@ -77,6 +78,7 @@
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:textColor="@color/lightBlue"
+                android:fontFamily="@font/jakarta_extra_bold"
                 android:paddingBottom="5dp"/>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -89,6 +91,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Fantasy"
+                    android:fontFamily="@font/jakarta_bold"
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
                     android:background="@drawable/rounded_search"/>
@@ -97,6 +100,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Coastal Myths"
+                    android:fontFamily="@font/jakarta_bold"
                     android:layout_marginStart="8dp"
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
@@ -106,6 +110,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="New Releases"
+                    android:fontFamily="@font/jakarta_bold"
                     android:layout_marginStart="8dp"
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
@@ -122,6 +127,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Marine Biology"
+                    android:fontFamily="@font/jakarta_bold"
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
                     android:background="@drawable/rounded_search"/>
@@ -130,6 +136,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Classic Sails"
+                    android:fontFamily="@font/jakarta_bold"
                     android:layout_marginStart="8dp"
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
@@ -139,8 +146,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Recently Viewed"
-                android:textSize="20sp"
-                android:textStyle="bold"
+                android:textSize="26sp"
+                android:fontFamily="@font/jakarta_extra_bold"
+                android:textColor="@color/black"
                 android:paddingTop="10dp"/>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvRecent"
@@ -154,14 +162,16 @@
                 android:layout_height="wrap_content"
                 android:text="No recently viewed."
                 android:textSize="14sp"
+                android:fontFamily="@font/jakarta_light"
                 android:visibility="gone"
                 android:paddingTop="10dp"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Most Read Books"
-                android:textSize="20sp"
-                android:textStyle="bold"
+                android:textSize="26sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/jakarta_extra_bold"
                 android:paddingTop="15dp"
                 android:paddingBottom="5dp"/>
             <androidx.recyclerview.widget.RecyclerView
@@ -174,6 +184,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="No most read books yet."
+                android:fontFamily="@font/jakarta_light"
                 android:textSize="14sp"
                 android:visibility="gone"
                 android:paddingTop="10dp"/>

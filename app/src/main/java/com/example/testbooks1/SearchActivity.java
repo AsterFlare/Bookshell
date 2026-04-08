@@ -145,9 +145,9 @@ public class SearchActivity extends AppCompatActivity {
                 for (DataSnapshot userSnapshot : snapshot.getChildren()) {
                     for (DataSnapshot bookSnapshot : userSnapshot.getChildren()) {
                         String status = bookSnapshot.child("status").getValue(String.class);
-                        if (status != null && (status.equals("Completed") || status.equals("Read"))) {
+                        if (status != null && (status.equals("Read"))) {
                             String bookId = bookSnapshot.getKey();
-                            String title = bookSnapshot.child("bookTitle").getValue(String.class);
+                            String title = bookSnapshot.child("title").getValue(String.class);
                             String imageUrl = bookSnapshot.child("imageUrl").getValue(String.class);
                             String author = bookSnapshot.child("author").getValue(String.class);
                             String description = bookSnapshot.child("description").getValue(String.class);

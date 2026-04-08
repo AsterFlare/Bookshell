@@ -16,7 +16,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="60dp"
@@ -24,13 +23,12 @@
             android:scaleType="centerInside"
             android:src="@drawable/logo"
             android:contentDescription="App Logo"/>
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Bookshell"
-            android:textSize="25sp"
-            android:textStyle="bold"
+            android:textSize="26sp"
+            android:fontFamily="@font/jakarta_extra_bold"
             android:textColor="@color/lightBlue"
             android:layout_gravity="center"
             android:paddingStart="10dp"/>
@@ -64,15 +62,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Community Activity"
-                android:textSize="24sp"
-                android:textStyle="bold"
+                android:textSize="26sp"
+                android:fontFamily="@font/jakarta_extra_bold"
+                android:textColor="@color/black"
                 android:paddingTop="10dp"/>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Discover what other curators are shelfing right now in their personal collections."
                 android:textSize="14sp"
+                android:fontFamily="@font/jakarta_medium"
                 android:layout_marginBottom="4dp"
                 android:textColor="@color/black"/>
             <ProgressBar
@@ -85,8 +84,8 @@
                 android:id="@+id/tvNoCommunity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No community list available"
-                android:textSize="16sp"
+                android:text="No community list available."
+                android:textSize="14sp"
                 android:textColor="@color/black"
                 android:visibility="gone"
                 />
@@ -96,9 +95,6 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"/>
         </LinearLayout>
-
-
-
     </androidx.core.widget.NestedScrollView>
 
     <FrameLayout

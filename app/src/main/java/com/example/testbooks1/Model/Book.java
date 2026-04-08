@@ -23,6 +23,23 @@ public class Book {
         this.readerLink = readerLink;
     }
 
+    public Book(String id, String title, String imageUrl, String author, String description, String category) {
+        this.id = id;
+        this.title = title;
+        this.imageUrl = imageUrl;
+        this.author = author;
+        this.description = description;
+        this.category = category;
+    }
+
+    public Book(String title, String imageUrl, String author, String description, String category) {
+        this.title = title;
+        this.imageUrl = imageUrl;
+        this.author = author;
+        this.description = description;
+        this.category = category;
+    }
+
     public Book(String title, String imageUrl){
         this.title = title;
         this.imageUrl = imageUrl;

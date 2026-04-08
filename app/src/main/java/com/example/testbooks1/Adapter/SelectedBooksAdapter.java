@@ -34,14 +34,12 @@ public class SelectedBooksAdapter extends RecyclerView.Adapter<SelectedBooksAdap
     public void onBindViewHolder(ViewHolder holder, int position) {
         CommunityBook book = list.get(position);
 
-        holder.tvTitle.setText(
-                book.title != null ? book.title : book.bookTitle
-        );
+        holder.tvTitle.setText(book.title);
         holder.tvAuthor.setText(book.author);
 
         //Glide.with(context).load(book.image).into(holder.ivBook);
         Glide.with(context)
-                .load(book.image != null ? book.image : book.imageUrl)
+                .load(book.imageUrl)
                 .into(holder.ivBook);
     }
 

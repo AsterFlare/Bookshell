@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                                 Long timestamp = ds.child("timestamp").getValue(Long.class);
                                 if (timestamp != null && timestamp > latestTimestamp) {
                                     latestTimestamp = timestamp;
-                                    String title = ds.child("bookTitle").getValue(String.class);
+                                    String title = ds.child("title").getValue(String.class);
                                     String imageUrl = ds.child("imageUrl").getValue(String.class);
                                     latestBook = new Book(title, imageUrl);
                                 }
