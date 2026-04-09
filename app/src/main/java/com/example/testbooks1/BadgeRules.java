@@ -97,4 +97,55 @@ public final class BadgeRules {
         }
         return ctx.getString(R.string.level_newcomer);
     }
+
+    public static int collectorLevelTier(int unlockedCount) {
+        if (unlockedCount >= 6) {
+            return 3;
+        }
+        if (unlockedCount >= 4) {
+            return 2;
+        }
+        if (unlockedCount >= 2) {
+            return 1;
+        }
+        return 0;
+    }
+
+    public static int badgeDrawableRes(int badgeIndex, boolean unlocked) {
+        switch (badgeIndex) {
+            case 0:
+                return unlocked ? R.drawable.first_voyage : R.drawable.first_voyage_locked;
+            case 1:
+                return unlocked ? R.drawable.novice_reader : R.drawable.novice_reader_locked;
+            case 2:
+                return unlocked ? R.drawable.book_worm : R.drawable.book_worm_locked;
+            case 3:
+                return unlocked ? R.drawable.ancient_pearl : R.drawable.ancient_pearl_locked;
+            case 4:
+                return unlocked ? R.drawable.starfish_rater : R.drawable.starfish_rater_locked;
+            case 5:
+                return unlocked ? R.drawable.tidal_curator : R.drawable.tidal_curator_locked;
+            default:
+                return unlocked ? R.drawable.first_voyage : R.drawable.first_voyage_locked;
+        }
+    }
+
+    public static int badgeRequirementTextRes(int badgeIndex) {
+        switch (badgeIndex) {
+            case 0:
+                return R.string.badge_requirement_first_voyage;
+            case 1:
+                return R.string.badge_requirement_novice_reader;
+            case 2:
+                return R.string.badge_requirement_bookworm;
+            case 3:
+                return R.string.badge_requirement_ancient_pearl;
+            case 4:
+                return R.string.badge_requirement_starfish_rater;
+            case 5:
+                return R.string.badge_requirement_tidal_curator;
+            default:
+                return R.string.badge_requirement_first_voyage;
+        }
+    }
 }

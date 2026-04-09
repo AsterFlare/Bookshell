@@ -2,18 +2,19 @@ package com.example.testbooks1;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -32,18 +33,28 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class ProfileActivity extends AppCompatActivity {
 
     private TextView tvFullName, tvProfileBio, tvBooksCount, tvBadgesCount, tvStreakDays, tvViewAllBadges;
     private TextView tvProfileLevel;
     private TextView tvCurrentlyReadingEmpty;
+    private Button btnDailyCheckIn;
+    private ImageButton btnSettings;
     private ImageView ivProfileImage;
-    private ImageButton menuButton;
+    private ImageButton btnEditProfileImage;
+    private View[] streakBars;
+    private int streakBarMaxHeightPx;
     private BottomNavigationView bottomNav;
     private RecyclerView recyclerCurrentlyReading;
     private CurrentlyReadingAdapter currentlyReadingAdapter;
@@ -84,14 +95,29 @@ public class ProfileActivity extends AppCompatActivity {
         tvViewAllBadges = findViewById(R.id.viewAllBadges);
         tvProfileLevel = findViewById(R.id.profileBadge);
         ivProfileImage = findViewById(R.id.profileImage);
-        menuButton = findViewById(R.id.menuButton);
+        btnEditProfileImage = findViewById(R.id.btnEditProfileImage);
+        btnSettings = findViewById(R.id.btnSettings);
+        btnDailyCheckIn = findViewById(R.id.btnDailyCheckIn);
+        streakBars = new View[]{
+                findViewById(R.id.streakBar0),
+                findViewById(R.id.streakBar1),
+                findViewById(R.id.streakBar2),
+                findViewById(R.id.streakBar3),
+                findViewById(R.id.streakBar4)
+        };
+        streakBarMaxHeightPx = (int) (80 * getResources().getDisplayMetrics().density + 0.5f);
         tvCurrentlyReadingEmpty = findViewById(R.id.tvCurrentlyReadingEmpty);
         recyclerCurrentlyReading = findViewById(R.id.recyclerCurrentlyReading);
 
         recyclerCurrentlyReading.setLayoutManager(new LinearLayoutManager(this));
-        currentlyReadingAdapter = new CurrentlyReadingAdapter(new ArrayList<>(), context, bookId -> {
+        currentlyReadingAdapter = new CurrentlyReadingAdapter(new ArrayList<>(), context, book -> {
             Intent intent = new Intent(context, BookDetailActivity.class);
-            intent.putExtra("bookId", bookId);
+            intent.putExtra("bookId", book.bookId);
+            intent.putExtra("title", book.title);
+            intent.putExtra("image", book.coverUrl);
+            intent.putExtra("author", book.author);
+            intent.putExtra("description", book.description);
+            intent.putExtra("category", book.category);
             startActivity(intent);
         });
         recyclerCurrentlyReading.setAdapter(currentlyReadingAdapter);
@@ -122,6 +148,12 @@ public class ProfileActivity extends AppCompatActivity {
             if (id == R.id.nav_home) {
                 startActivity(new Intent(context, MainActivity.class));
                 return true;
+            } else if (id == R.id.nav_search) {
+                startActivity(new Intent(context, SearchActivity.class));
+                return true;
+            } else if (id == R.id.nav_community) {
+                startActivity(new Intent(context, CommunityActivity.class));
+                return true;
             } else if (id == R.id.nav_library) {
                 startActivity(new Intent(context, LibraryActivity.class));
                 return true;
@@ -137,6 +169,11 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
+                    ivProfileImage.setImageResource(R.drawable.default_pfp);
+                    ivProfileImage.setVisibility(View.VISIBLE);
+                    tvFullName.setVisibility(View.VISIBLE);
+                    tvProfileBio.setVisibility(View.VISIBLE);
+                    tvProfileLevel.setVisibility(View.VISIBLE);
                     return;
                 }
                 String firstName = snapshot.child("firstName").getValue(String.class);
@@ -147,15 +184,30 @@ public class ProfileActivity extends AppCompatActivity {
                 String fn = firstName != null ? firstName : "";
                 String ln = lastName != null ? lastName : "";
                 tvFullName.setText(getString(R.string.profile_name_format, fn, ln).trim());
-                tvProfileBio.setText(bio != null ? bio : "");
+                if (bio == null || bio.trim().isEmpty()) {
+                    tvProfileBio.setText(R.string.bio_default_text);
+                } else {
+                    tvProfileBio.setText(bio);
+                }
+                tvFullName.setVisibility(View.VISIBLE);
+                tvProfileBio.setVisibility(View.VISIBLE);
+                tvProfileLevel.setVisibility(View.VISIBLE);
 
                 if (imageUrl != null && !imageUrl.isEmpty()) {
                     Glide.with(context).load(imageUrl).into(ivProfileImage);
+                } else {
+                    ivProfileImage.setImageResource(R.drawable.default_pfp);
                 }
+                ivProfileImage.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                ivProfileImage.setImageResource(R.drawable.default_pfp);
+                ivProfileImage.setVisibility(View.VISIBLE);
+                tvFullName.setVisibility(View.VISIBLE);
+                tvProfileBio.setVisibility(View.VISIBLE);
+                tvProfileLevel.setVisibility(View.VISIBLE);
                 Toast.makeText(context, R.string.toast_profile_load_failed, Toast.LENGTH_SHORT).show();
             }
         });
@@ -170,24 +222,55 @@ public class ProfileActivity extends AppCompatActivity {
                     tvBadgesCount.setText(getString(R.string.badges_unlocked_count_format, 0, BadgeRules.TOTAL_BADGES));
                     tvStreakDays.setText(getString(R.string.streak_days_format, 0));
                     tvProfileLevel.setText(BadgeRules.levelNameForUnlockedCount(context, 0));
+                    tvBooksCount.setVisibility(View.VISIBLE);
+                    tvBadgesCount.setVisibility(View.VISIBLE);
+                    tvProfileLevel.setVisibility(View.VISIBLE);
                     profileBadgeRows.clear();
                     profileBadgeRows.addAll(BadgeRules.badgeRowsFromStats(context, 0, 0, 0));
                     profileBadgeAdapter.notifyDataSetChanged();
+                    applyStreakBars(0L);
                     return;
                 }
                 long completed = BadgeRules.readStatLong(snapshot, "completed");
                 long reviews = BadgeRules.readStatLong(snapshot, "reviews");
                 long readingLists = BadgeRules.readStatLong(snapshot, "readingLists");
                 long streak = BadgeRules.readStatLong(snapshot, "readingStreak");
+                String lastStreakDate = snapshot.child("lastStreakDate").getValue(String.class);
+                String today = pstDayKey();
+                int dayGap = dayGapPst(lastStreakDate, today);
+
+                if (dayGap >= 2 && streak != 0L) {
+                    DatabaseReference statsRef = mDatabase.child("users").child(userId).child("stats");
+                    statsRef.child("readingStreak").setValue(0L);
+                    for (int i = 0; i < 5; i++) {
+                        statsRef.child("weeklyActivity").child(String.valueOf(i)).setValue(0L);
+                    }
+                    streak = 0L;
+                }
+
+                if (normalizeWeeklyActivityIfNeeded(streak, lastStreakDate, today, snapshot.child("weeklyActivity"))) {
+                    return;
+                }
+
+                boolean alreadyCheckedInToday = today.equals(lastStreakDate);
+                btnDailyCheckIn.setEnabled(!alreadyCheckedInToday);
+                btnDailyCheckIn.setText(alreadyCheckedInToday
+                        ? R.string.action_checked_in_today
+                        : R.string.action_daily_check_in);
 
                 tvBooksCount.setText(String.valueOf(completed));
                 int unlocked = BadgeRules.countUnlocked(completed, reviews, readingLists);
                 tvBadgesCount.setText(getString(R.string.badges_unlocked_count_format, unlocked, BadgeRules.TOTAL_BADGES));
                 tvStreakDays.setText(getString(R.string.streak_days_format, (int) streak));
                 tvProfileLevel.setText(BadgeRules.levelNameForUnlockedCount(context, unlocked));
+                tvBooksCount.setVisibility(View.VISIBLE);
+                tvBadgesCount.setVisibility(View.VISIBLE);
+                tvProfileLevel.setVisibility(View.VISIBLE);
                 profileBadgeRows.clear();
                 profileBadgeRows.addAll(BadgeRules.badgeRowsFromStats(context, completed, reviews, readingLists));
                 profileBadgeAdapter.notifyDataSetChanged();
+
+                applyStreakBars(streak);
             }
 
             @Override
@@ -195,6 +278,66 @@ public class ProfileActivity extends AppCompatActivity {
                 Toast.makeText(context, R.string.toast_stats_load_failed, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private boolean normalizeWeeklyActivityIfNeeded(long streak,
+                                                    @Nullable String lastStreakDate,
+                                                    @NonNull String today,
+                                                    @NonNull DataSnapshot weeklyActivitySnapshot) {
+        long[] bars = new long[5];
+        long maxValue = 0L;
+        int maxIndex = -1;
+        boolean hasAny = false;
+        for (int i = 0; i < 5; i++) {
+            bars[i] = BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(i));
+            if (bars[i] > 0L) {
+                hasAny = true;
+                if (bars[i] > maxValue) {
+                    maxValue = bars[i];
+                    maxIndex = i;
+                }
+            }
+        }
+
+        if (streak <= 0L) {
+            if (!hasAny) {
+                return false;
+            }
+            DatabaseReference waRef = mDatabase.child("users").child(userId).child("stats").child("weeklyActivity");
+            for (int i = 0; i < 5; i++) {
+                waRef.child(String.valueOf(i)).setValue(0L);
+            }
+            return true;
+        }
+
+        if (!today.equals(lastStreakDate)) {
+            return false;
+        }
+
+        int expectedIndex = (int) Math.max(0, Math.min(4, streak - 1L));
+        if (maxIndex == -1 || maxIndex == expectedIndex) {
+            return false;
+        }
+
+        DatabaseReference waRef = mDatabase.child("users").child(userId).child("stats").child("weeklyActivity");
+        for (int i = 0; i < 5; i++) {
+            waRef.child(String.valueOf(i)).setValue(i == expectedIndex ? Math.max(25L, maxValue) : 0L);
+        }
+        return true;
+    }
+
+    private void applyStreakBars(long streakDays) {
+        if (streakBars == null) {
+            return;
+        }
+        for (int i = 0; i < 5; i++) {
+            long daysInSegment = Math.max(0L, Math.min(7L, streakDays - (i * 7L)));
+            long pct = Math.round((daysInSegment * 100.0) / 7.0);
+            int h = (int) Math.max(8, streakBarMaxHeightPx * pct / 100.0);
+            ViewGroup.LayoutParams lp = streakBars[i].getLayoutParams();
+            lp.height = h;
+            streakBars[i].setLayoutParams(lp);
+        }
     }
 
     private void listenCurrentlyReading() {
@@ -210,7 +353,12 @@ public class ProfileActivity extends AppCompatActivity {
                             row.bookId = bookSnap.getKey();
                             row.title = bookSnap.child("title").getValue(String.class);
                             row.author = bookSnap.child("author").getValue(String.class);
-                            row.coverUrl = bookSnap.child("coverUrl").getValue(String.class);
+                            row.description = bookSnap.child("description").getValue(String.class);
+                            row.category = bookSnap.child("category").getValue(String.class);
+                            row.coverUrl = bookSnap.child("imageUrl").getValue(String.class);
+                            if (row.coverUrl == null || row.coverUrl.isEmpty()) {
+                                row.coverUrl = bookSnap.child("coverUrl").getValue(String.class);
+                            }
                             list.add(row);
                         }
                         currentlyReadingAdapter.setBooks(list);
@@ -228,21 +376,113 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         tvViewAllBadges.setOnClickListener(v -> startActivity(new Intent(context, BadgesActivity.class)));
-        menuButton.setOnClickListener(v -> startActivity(new Intent(context, EditProfileActivity.class)));
-        ivProfileImage.setOnClickListener(v -> startActivity(new Intent(context, EditProfileActivity.class)));
+        btnEditProfileImage.setOnClickListener(v -> startActivity(new Intent(context, EditProfileActivity.class)));
+        btnSettings.setOnClickListener(v -> startActivity(new Intent(context, SettingsActivity.class)));
+        btnDailyCheckIn.setOnClickListener(v -> applyDailyCheckIn());
+        ivProfileImage.setOnClickListener(v -> {
+            // Edit entry is the pencil button in the top bar.
+        });
+    }
+
+    private void applyDailyCheckIn() {
+        DatabaseReference statsRef = mDatabase.child("users").child(userId).child("stats");
+        statsRef.runTransaction(new Transaction.Handler() {
+            @NonNull
+            @Override
+            public Transaction.Result doTransaction(@NonNull MutableData currentData) {
+                String today = pstDayKey();
+                String last = currentData.child("lastStreakDate").getValue(String.class);
+                if (today.equals(last)) {
+                    return Transaction.success(currentData);
+                }
+
+                long currentStreak = readMutableLong(currentData.child("readingStreak"));
+                int gap = dayGapPst(last, today);
+                long nextStreak = (gap == 1) ? (currentStreak + 1L) : 1L;
+
+                currentData.child("readingStreak").setValue(nextStreak);
+                currentData.child("lastStreakDate").setValue(today);
+
+                int bar = (int) Math.max(0, Math.min(4, nextStreak - 1));
+                if (nextStreak == 1L) {
+                    for (int i = 0; i < 5; i++) {
+                        currentData.child("weeklyActivity").child(String.valueOf(i)).setValue(0L);
+                    }
+                }
+                long prev = readMutableLong(currentData.child("weeklyActivity").child(String.valueOf(bar)));
+                currentData.child("weeklyActivity").child(String.valueOf(bar))
+                        .setValue(Math.min(100L, prev + 25L));
+                return Transaction.success(currentData);
+            }
+
+            @Override
+            public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {
+                if (error != null) {
+                    Toast.makeText(context, R.string.toast_check_in_failed, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String today = pstDayKey();
+                String last = currentData != null ? currentData.child("lastStreakDate").getValue(String.class) : null;
+                if (today.equals(last)) {
+                    Toast.makeText(context, R.string.toast_checked_in_today, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private static long readMutableLong(@Nullable MutableData node) {
+        if (node == null) {
+            return 0L;
+        }
+        Object value = node.getValue();
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Integer) {
+            return ((Integer) value).longValue();
+        }
+        if (value instanceof Double) {
+            return Math.round((Double) value);
+        }
+        return 0L;
+    }
+
+    private static String pstDayKey() {
+        SimpleDateFormat dayKey = new SimpleDateFormat("yyyyMMdd", Locale.US);
+        dayKey.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+        return dayKey.format(Calendar.getInstance().getTime());
+    }
+
+    private static int dayGapPst(@Nullable String lastDay, @NonNull String todayDay) {
+        if (lastDay == null || lastDay.isEmpty()) {
+            return Integer.MAX_VALUE;
+        }
+        try {
+            SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.US);
+            fmt.setLenient(false);
+            fmt.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+            long lastMs = fmt.parse(lastDay).getTime();
+            long todayMs = fmt.parse(todayDay).getTime();
+            long days = (todayMs - lastMs) / (24L * 60L * 60L * 1000L);
+            return (int) days;
+        } catch (Exception e) {
+            return Integer.MAX_VALUE;
+        }
     }
 
     private static class CurrentlyReadingBook {
         String bookId;
         String title;
         String author;
+        String description;
+        String category;
         String coverUrl;
     }
 
     private static class CurrentlyReadingAdapter extends RecyclerView.Adapter<CurrentlyReadingAdapter.BookVH> {
 
         interface OnBookClickListener {
-            void onBookClick(String bookId);
+            void onBookClick(CurrentlyReadingBook book);
         }
 
         private final List<CurrentlyReadingBook> books;
@@ -282,7 +522,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             View.OnClickListener openDetail = v -> {
                 if (b.bookId != null) {
-                    listener.onBookClick(b.bookId);
+                    listener.onBookClick(b);
                 }
             };
             holder.card.setOnClickListener(openDetail);
@@ -299,7 +539,7 @@ public class ProfileActivity extends AppCompatActivity {
             final ImageView ivCover;
             final TextView tvTitle;
             final TextView tvAuthor;
-            final TextView tvContinue;
+            final View tvContinue;
 
             BookVH(@NonNull View itemView) {
                 super(itemView);
@@ -323,7 +563,14 @@ public class ProfileActivity extends AppCompatActivity {
         @NonNull
         @Override
         public BadgeVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_badge_profile, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_badge, parent, false);
+            float density = parent.getContext().getResources().getDisplayMetrics().density;
+            RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(
+                    (int) (118 * density),
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            int hMargin = (int) (6 * density);
+            lp.setMargins(hMargin, 0, hMargin, 0);
+            v.setLayoutParams(lp);
             return new BadgeVH(v);
         }
 
@@ -331,17 +578,18 @@ public class ProfileActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull BadgeVH holder, int position) {
             BadgeRules.BadgeRow row = rows.get(position);
             holder.tvName.setText(row.name);
+            holder.ivCheck.setVisibility(View.GONE);
 
-            int tint = row.unlocked ? row.accentColorRes : R.color.badge_icon_locked;
-            holder.ivIcon.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(holder.ivIcon.getContext(), tint)));
+            holder.ivIcon.setImageTintList(null);
+            holder.ivIcon.setBackgroundTintList(null);
+            holder.ivIcon.setImageResource(BadgeRules.badgeDrawableRes(position, row.unlocked));
 
             if (row.unlocked) {
                 holder.itemView.setAlpha(1f);
                 holder.tvStatus.setText(R.string.badge_status_unlocked);
                 holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.primary_blue));
             } else {
-                holder.itemView.setAlpha(0.55f);
+                holder.itemView.setAlpha(1f);
                 holder.tvStatus.setText(R.string.badge_status_locked);
                 holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_secondary));
             }
@@ -354,12 +602,14 @@ public class ProfileActivity extends AppCompatActivity {
 
         static class BadgeVH extends RecyclerView.ViewHolder {
             final ShapeableImageView ivIcon;
+            final ImageView ivCheck;
             final TextView tvName;
             final TextView tvStatus;
 
             BadgeVH(@NonNull View itemView) {
                 super(itemView);
                 ivIcon = itemView.findViewById(R.id.ivBadgeIcon);
+                ivCheck = itemView.findViewById(R.id.ivBadgeCheck);
                 tvName = itemView.findViewById(R.id.tvBadgeName);
                 tvStatus = itemView.findViewById(R.id.tvBadgeStatus);
             }

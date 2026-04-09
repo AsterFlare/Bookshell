@@ -12,8 +12,8 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_profile"
-        android:layout_marginRight="8dp"
+        android:src="@drawable/default_pfp"
+        android:layout_marginEnd="8dp"
         app:shapeAppearanceOverlay="@style/profileImage" />
     <LinearLayout
         android:layout_width="match_parent"
@@ -34,7 +34,7 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/jakarta_extra_bold"
                 android:textSize="16sp"
-                android:text="Full Name"/>
+                android:text="@string/placeholder_full_name"/>
 
             <TextView
                 android:id="@+id/tvTime"
@@ -42,14 +42,14 @@
                 android:layout_height="wrap_content"
                 android:textSize="12sp"
                 android:textColor="#888888"
-                android:text="2h ago"
+                android:text="@string/placeholder_time_ago"
                 android:fontFamily="@font/jakarta_light"/>
         </LinearLayout>
         <TextView
             android:id="@+id/tvComment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Comment text here"
+            android:text="@string/placeholder_comment_text"
             android:fontFamily="@font/jakarta_medium"
             android:textSize="14sp"/>
     </LinearLayout>

@@ -3,21 +3,44 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_light"
+    android:fitsSystemWindows="true"
     tools:context=".EditProfileActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
+    <LinearLayout
         android:id="@+id/toolbar"
         android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@android:color/transparent"
-        app:navigationIcon="@drawable/ic_arrow_back"
-        app:title="@string/title_edit_profile"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/toolbarBack"
+            android:layout_width="20dp"
+            android:layout_height="30dp"
+            android:clickable="true"
+            android:contentDescription="@string/action_close"
+            android:focusable="true"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/title_edit_profile"
+            android:textColor="@color/lightBlue"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
@@ -44,31 +67,36 @@
                     android:id="@+id/profileImage"
                     android:layout_width="140dp"
                     android:layout_height="140dp"
-                    android:src="@drawable/ic_profile"
+                    android:src="@null"
                     android:scaleType="centerCrop"
-                    app:shapeAppearanceOverlay="@style/ShapeAppearance.RoundedCircle"
-                    android:contentDescription="@string/edit_profile_pic_desc" />
+                    android:contentDescription="@string/edit_profile_pic_desc"
+                    android:visibility="invisible"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.RoundedCircle" />
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fabEditImage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageButton
+                    android:id="@+id/btnEditProfileImage"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
                     android:layout_gravity="bottom|end"
-                    app:fabSize="mini"
+                    android:layout_marginEnd="2dp"
+                    android:layout_marginBottom="2dp"
+                    android:background="@drawable/bg_circle_gold_white"
+                    android:contentDescription="@string/edit_profile_pic_desc"
+                    android:padding="8dp"
                     android:src="@drawable/ic_edit"
-                    app:backgroundTint="#CDB395"
-                    app:tint="@color/white"
-                    android:contentDescription="@string/edit_profile_pic_desc" />
+                    app:tint="#CDB395" />
             </FrameLayout>
 
             <TextView
+                android:id="@+id/tvEditProfileName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/profile_name"
                 android:textColor="#1A1C1E"
                 android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="invisible" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -136,27 +164,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="@string/label_email"
-                        android:textColor="#1A1C1E"
-                        android:textStyle="bold"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/tvEmail"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/bg_edit_text"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="16dp"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="15sp"
-                        tools:text="you@example.com" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
                         android:text="@string/label_bio"
                         android:textColor="#1A1C1E"
                         android:textStyle="bold"
@@ -174,6 +181,8 @@
                         android:inputType="textMultiLine|textCapSentences"
                         android:importantForAutofill="no"
                         android:hint="@string/label_bio"
+                        android:textSize="14sp"
+                        android:textColor="#1A1C1E"
                         tools:ignore="LabelFor" />
 
                     <Button

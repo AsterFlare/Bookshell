@@ -3,7 +3,7 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -31,8 +31,7 @@ import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.Book;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import androidx.annotation.NonNull;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -48,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
 
     EditText etSearch;
     TextView tvCurrentlyReading;
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                     .equalTo("Currently Reading")
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot snapshot) {
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
                             Book latestBook = null;
                             long latestTimestamp = 0;
 
@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         @Override
-                        public void onCancelled(DatabaseError error) {
+                        public void onCancelled(@NonNull DatabaseError error) {
                         }
                     });
         }
@@ -190,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 response -> {
                     try {
                         progress.setVisibility(View.GONE);
+                        int previousSize = bookList.size();
                         bookList.clear();
                         if (!response.has("items")) return;
 
@@ -234,7 +235,11 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 },
-                error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
+                error -> {
+                    Log.w(TAG, "Books API request failed", error);
+                    progress.setVisibility(View.GONE);
+                    Toast.makeText(c, R.string.toast_books_load_failed, Toast.LENGTH_SHORT).show();
+                }
         );
         r.add(json);
     }
@@ -304,13 +309,16 @@ public class MainActivity extends AppCompatActivity {
                             }
                             bookList.add(new Book(id, title, imageUrl, author, description, publisher, category, readerLink));
                         }
-                        adapter.notifyDataSetChanged();
+                        if (previousSize > 0) {
+                            adapter.notifyItemRangeRemoved(0, previousSize);
+                        }
+                        adapter.notifyItemRangeInserted(0, bookList.size());
                         recommendedSection.setVisibility(View.VISIBLE);
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Failed parsing recommended books payload", e);
                     }
                 },
-                error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
+                error -> Log.w(TAG, "Recommended books API request failed", error)
         );
         r.add(json);
     }
@@ -328,6 +336,7 @@ public class MainActivity extends AppCompatActivity {
         JsonObjectRequest json = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
                     try {
+                        int previousSize = recommendedList.size();
                         recommendedList.clear();
 
                         if (!response.has("items")) return;
@@ -380,11 +389,13 @@ public class MainActivity extends AppCompatActivity {
                             recommendedList.add(new Book(id, title, imageUrl, author, description, publisher, category, readerLink));
                             count++;
                         }
-
-                        recommendedAdapter.notifyDataSetChanged();
+                        if (previousSize > 0) {
+                            recommendedAdapter.notifyItemRangeRemoved(0, previousSize);
+                        }
+                        recommendedAdapter.notifyItemRangeInserted(0, recommendedList.size());
 
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Failed parsing personalized recommendations", e);
                     }
                 },
                 error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
@@ -403,21 +414,23 @@ public class MainActivity extends AppCompatActivity {
                 .child(uid);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 HashMap<String, Integer> categoryCount = new HashMap<>();
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     String category = ds.child("category").getValue(String.class);
                     if (category != null && !category.equals("Unknown")) {
-                        categoryCount.put(category,
-                                categoryCount.getOrDefault(category, 0) + 1);
+                        Integer existingCount = categoryCount.get(category);
+                        int currentCount = existingCount != null ? existingCount : 0;
+                        categoryCount.put(category, currentCount + 1);
                     }
                 }
                 String topCategory = null;
                 int max = 0;
 
                 for (String cat : categoryCount.keySet()) {
-                    if (categoryCount.get(cat) > max) {
-                        max = categoryCount.get(cat);
+                    Integer catCount = categoryCount.get(cat);
+                    if (catCount != null && catCount > max) {
+                        max = catCount;
                         topCategory = cat;
                     }
                 }
@@ -431,7 +444,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
                 callBooks("bestseller");
             }
         });

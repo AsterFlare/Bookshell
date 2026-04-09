@@ -11,7 +11,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 
 import android.content.Intent;
-import android.view.View;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -78,6 +78,9 @@ public class RegistrationActivity extends AppCompatActivity {
             } if (email.isEmpty()) {
                 Toast.makeText(c, "Please enter your email.", Toast.LENGTH_SHORT).show();
                 return;
+            } if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(c, "Invalid email format.", Toast.LENGTH_SHORT).show();
+                return;
             } if (password.isEmpty()) {
                 Toast.makeText(c, "Please enter your password.", Toast.LENGTH_SHORT).show();
                 return;
@@ -104,7 +107,11 @@ public class RegistrationActivity extends AppCompatActivity {
                                 }
                             } else {
                                 try {
-                                    throw task.getException();
+                                    Exception cause = task.getException();
+                                    if (cause == null) {
+                                        throw new Exception("Unknown registration error");
+                                    }
+                                    throw cause;
                                 } catch (FirebaseAuthUserCollisionException e) {
                                     Toast.makeText(c, "This email is already registered.", Toast.LENGTH_SHORT).show();
                                 } catch (FirebaseAuthWeakPasswordException e) {
@@ -121,12 +128,9 @@ public class RegistrationActivity extends AppCompatActivity {
             }
         });
 
-        tvAlreadyRegistered.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(c, LoginActivity.class); //loginActivity
-                startActivity(intent);
-            }
+        tvAlreadyRegistered.setOnClickListener(v -> {
+            Intent intent = new Intent(c, LoginActivity.class); //loginActivity
+            startActivity(intent);
         });
     }
 }

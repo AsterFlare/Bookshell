@@ -3,15 +3,18 @@
     android:padding="8dp"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
+    android:background="@drawable/rounded_reactions_container">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="10dp"
-        android:padding="10dp"
-        android:background="@drawable/rounded_reactions_container">
+        android:orientation="vertical">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -23,8 +26,8 @@
                 android:layout_height="48dp"
                 android:scaleType="centerCrop"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_profile"
-                android:layout_marginRight="8dp"
+                android:src="@drawable/default_pfp"
+                android:layout_marginEnd="8dp"
                 app:shapeAppearanceOverlay="@style/profileImage"/>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -43,7 +46,7 @@
                         android:layout_weight="1"
                         android:fontFamily="@font/jakarta_extra_bold"
                         android:textSize="16sp"
-                        android:text="Full Name"/>
+                        android:text="@string/placeholder_full_name"/>
                     <TextView
                         android:id="@+id/tvTime"
                         android:layout_width="wrap_content"
@@ -68,7 +71,7 @@
             android:id="@+id/tvComment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14dp"
+            android:textSize="14sp"
             android:text=""
             android:fontFamily="@font/jakarta_medium"/>
     </LinearLayout>

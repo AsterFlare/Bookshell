@@ -1,6 +1,5 @@
 package com.example.testbooks1;
 
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +15,6 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,7 +33,6 @@ public class BadgesActivity extends AppCompatActivity {
     private TextView tvLevelName;
     private TextView tvBadgesEarned;
     private ProgressBar progressBadges;
-    private RecyclerView recyclerBadges;
     private BadgesAdapter adapter;
 
     private DatabaseReference mDatabase;
@@ -48,13 +45,12 @@ public class BadgesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_badges);
 
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
+        findViewById(R.id.toolbarBack).setOnClickListener(v -> finish());
 
         tvLevelName = findViewById(R.id.tvLevelName);
         tvBadgesEarned = findViewById(R.id.tvBadgesEarned);
         progressBadges = findViewById(R.id.progressBadges);
-        recyclerBadges = findViewById(R.id.recyclerBadges);
+        RecyclerView recyclerBadges = findViewById(R.id.recyclerBadges);
 
         recyclerBadges.setLayoutManager(new GridLayoutManager(this, 2));
         adapter = new BadgesAdapter(badgeRows);
@@ -77,6 +73,7 @@ public class BadgesActivity extends AppCompatActivity {
         mDatabase.child("users").child(userId).child("stats").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int previousSize = badgeRows.size();
                 long completed = BadgeRules.readStatLong(snapshot, "completed");
                 long reviews = BadgeRules.readStatLong(snapshot, "reviews");
                 long readingLists = BadgeRules.readStatLong(snapshot, "readingLists");
@@ -89,7 +86,10 @@ public class BadgesActivity extends AppCompatActivity {
 
                 badgeRows.clear();
                 badgeRows.addAll(BadgeRules.badgeRowsFromStats(BadgesActivity.this, completed, reviews, readingLists));
-                adapter.notifyDataSetChanged();
+                if (previousSize > 0) {
+                    adapter.notifyItemRangeRemoved(0, previousSize);
+                }
+                adapter.notifyItemRangeInserted(0, badgeRows.size());
             }
 
             @Override
@@ -110,7 +110,14 @@ public class BadgesActivity extends AppCompatActivity {
         @NonNull
         @Override
         public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_badge_grid, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_badge, parent, false);
+            float density = parent.getContext().getResources().getDisplayMetrics().density;
+            RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            int margin = (int) (7 * density);
+            lp.setMargins(margin, margin, margin, margin);
+            v.setLayoutParams(lp);
             return new VH(v);
         }
 
@@ -121,26 +128,24 @@ public class BadgesActivity extends AppCompatActivity {
 
             holder.tvName.setText(row.name);
 
-            int tint = row.unlocked ? row.accentColorRes : R.color.badge_icon_locked;
-            holder.ivIcon.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(holder.ivIcon.getContext(), tint)));
+            holder.ivIcon.setImageTintList(null);
+            holder.ivIcon.setBackgroundTintList(null);
+            holder.ivIcon.setImageResource(BadgeRules.badgeDrawableRes(position, row.unlocked));
+            holder.ivCheck.setVisibility(View.GONE);
 
             if (row.unlocked) {
                 holder.card.setAlpha(1f);
                 holder.card.setStrokeWidth(0);
                 holder.card.setCardElevation(4f * density);
-                holder.ivCheck.setVisibility(View.VISIBLE);
-                holder.tvStatus.setText(R.string.badge_status_unlocked);
                 holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.primary_blue));
             } else {
                 holder.card.setAlpha(0.72f);
-                holder.card.setStrokeWidth(Math.round(1f * density));
+                holder.card.setStrokeWidth(Math.round(density));
                 holder.card.setStrokeColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.badge_card_stroke));
-                holder.card.setCardElevation(1f * density);
-                holder.ivCheck.setVisibility(View.GONE);
-                holder.tvStatus.setText(R.string.badge_status_locked);
+                holder.card.setCardElevation(density);
                 holder.tvStatus.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.text_secondary));
             }
+            holder.tvStatus.setText(BadgeRules.badgeRequirementTextRes(position));
         }
 
         @Override

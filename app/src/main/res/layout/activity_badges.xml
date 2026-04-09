@@ -7,17 +7,37 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/bg_light"
+    android:fitsSystemWindows="true"
     tools:context=".BadgesActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
+    <LinearLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
         android:background="@color/white"
-        android:elevation="2dp"
-        app:navigationIcon="@drawable/ic_arrow_back"
-        app:title="@string/title_badges"
-        app:titleTextColor="#1A1C1E" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp">
+
+        <ImageView
+            android:id="@+id/toolbarBack"
+            android:layout_width="20dp"
+            android:layout_height="30dp"
+            android:clickable="true"
+            android:contentDescription="@string/action_close"
+            android:focusable="true"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/title_my_badges"
+            android:textColor="@color/primary_blue"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -105,27 +125,7 @@
                 android:nestedScrollingEnabled="false"
                 android:overScrollMode="never"
                 tools:itemCount="6"
-                tools:listitem="@layout/item_badge_grid" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/badge_card_stroke"
-                app:cardBackgroundColor="@color/white">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="18dp"
-                    android:text="@string/badges_footer_info"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:lineSpacingExtra="3dp" />
-            </com.google.android.material.card.MaterialCardView>
+                tools:listitem="@layout/item_badge" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>

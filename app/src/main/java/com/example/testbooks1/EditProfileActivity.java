@@ -1,23 +1,31 @@
 package com.example.testbooks1;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -25,27 +33,38 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class EditProfileActivity extends AppCompatActivity {
 
     private EditText etFirstName, etLastName, etBio;
-    private TextView tvEmail;
     private ImageView ivProfileImage;
-    private FloatingActionButton fabEditImage;
+    private ImageButton btnEditProfileImage;
     private Button btnSave;
-    private TextView tvCancel;
+    private TextView tvEditProfileName;
 
     private DatabaseReference mDatabase;
-    private StorageReference mStorageRef;
     private String userId;
     private Uri imageUri;
-
-    private static final int PICK_IMAGE_REQUEST = 1;
+    @Nullable
+    private Uri cameraOutputUri;
+    private final ActivityResultLauncher<Intent> cameraLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && cameraOutputUri != null) {
+                    imageUri = cameraOutputUri;
+                    ivProfileImage.setImageURI(imageUri);
+                    revokeUriPermission(cameraOutputUri,
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,27 +78,23 @@ public class EditProfileActivity extends AppCompatActivity {
         }
         userId = user.getUid();
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        mStorageRef = FirebaseStorage.getInstance().getReference("profile_pictures");
 
         etFirstName = findViewById(R.id.etFirstName);
         etLastName = findViewById(R.id.etLastName);
         etBio = findViewById(R.id.etBio);
-        tvEmail = findViewById(R.id.tvEmail);
         ivProfileImage = findViewById(R.id.profileImage);
-        fabEditImage = findViewById(R.id.fabEditImage);
+        btnEditProfileImage = findViewById(R.id.btnEditProfileImage);
         btnSave = findViewById(R.id.btnSave);
-        tvCancel = findViewById(R.id.tvCancel);
+        TextView tvCancel = findViewById(R.id.tvCancel);
+        tvEditProfileName = findViewById(R.id.tvEditProfileName);
 
-        tvEmail.setText(user.getEmail() != null ? user.getEmail() : "");
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
+        findViewById(R.id.toolbarBack).setOnClickListener(v -> finish());
 
         loadUserData();
 
-        fabEditImage.setOnClickListener(v -> {
+        btnEditProfileImage.setOnClickListener(v -> {
             if (btnSave.isEnabled()) {
-                openGallery();
+                openCamera();
             }
         });
         btnSave.setOnClickListener(v -> saveChanges());
@@ -91,6 +106,10 @@ public class EditProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
+                    tvEditProfileName.setText(getString(R.string.profile_name));
+                    tvEditProfileName.setVisibility(View.VISIBLE);
+                    ivProfileImage.setImageResource(R.drawable.default_pfp);
+                    ivProfileImage.setVisibility(View.VISIBLE);
                     return;
                 }
                 String first = snapshot.child("firstName").getValue(String.class);
@@ -103,14 +122,18 @@ public class EditProfileActivity extends AppCompatActivity {
                 if (last != null) {
                     etLastName.setText(last);
                 }
-                if (bio != null) {
-                    etBio.setText(bio);
-                }
+                etBio.setText(Objects.requireNonNullElseGet(bio, () -> getString(R.string.bio_default_text)));
+                String fullName = ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
+                tvEditProfileName.setText(fullName.isEmpty() ? getString(R.string.profile_name) : fullName);
+                tvEditProfileName.setVisibility(View.VISIBLE);
 
                 String imageUrl = snapshot.child("profileImageUrl").getValue(String.class);
                 if (imageUrl != null && !imageUrl.isEmpty()) {
                     Glide.with(EditProfileActivity.this).load(imageUrl).into(ivProfileImage);
+                } else {
+                    ivProfileImage.setImageResource(R.drawable.default_pfp);
                 }
+                ivProfileImage.setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -120,17 +143,25 @@ public class EditProfileActivity extends AppCompatActivity {
         });
     }
 
-    private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
+    private void openCamera() {
+        try {
+            File photoFile = File.createTempFile("profile_capture_" + userId + "_", ".jpg", getCacheDir());
+            cameraOutputUri = FileProvider.getUriForFile(
+                    this,
+                    getPackageName() + ".fileprovider",
+                    photoFile);
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraOutputUri);
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            imageUri = data.getData();
-            ivProfileImage.setImageURI(imageUri);
+            List<ResolveInfo> cameraApps = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            for (ResolveInfo ri : cameraApps) {
+                grantUriPermission(ri.activityInfo.packageName, cameraOutputUri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
+            cameraLauncher.launch(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.toast_camera_unavailable, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -138,8 +169,11 @@ public class EditProfileActivity extends AppCompatActivity {
         String firstName = etFirstName.getText().toString().trim();
         String lastName = etLastName.getText().toString().trim();
         String bio = etBio.getText().toString().trim();
+        if (bio.isEmpty()) {
+            bio = getString(R.string.bio_default_text);
+        }
 
-        if (TextUtils.isEmpty(firstName) || TextUtils.isEmpty(lastName) || TextUtils.isEmpty(bio)) {
+        if (TextUtils.isEmpty(firstName) || TextUtils.isEmpty(lastName)) {
             Toast.makeText(this, R.string.toast_fill_fields, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -153,24 +187,108 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private void setSaving(boolean saving) {
         btnSave.setEnabled(!saving);
-        fabEditImage.setEnabled(!saving);
+        ivProfileImage.setEnabled(!saving);
+        btnEditProfileImage.setEnabled(!saving);
         btnSave.setText(saving ? R.string.edit_saving : R.string.action_save_changes);
     }
 
+    @Nullable
+    private static String imageUrlFromCloudinaryResult(@Nullable Map<?, ?> resultData) {
+        if (resultData == null) {
+            return null;
+        }
+        for (String key : new String[]{"secure_url", "url"}) {
+            Object v = resultData.get(key);
+            if (v != null) {
+                String s = v.toString();
+                if (!s.isEmpty()) {
+                    return s;
+                }
+            }
+        }
+        return null;
+    }
+
     private void uploadImageThenSave(String firstName, String lastName, String bio) {
+        if (imageUri == null) {
+            Toast.makeText(this, R.string.toast_image_read_failed, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Uri uploadUri = copyImageToCacheForUpload(imageUri);
+        if (uploadUri == null) {
+            Toast.makeText(this, R.string.toast_image_read_failed, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         setSaving(true);
-        StorageReference fileRef = mStorageRef.child(userId + ".jpg");
-        fileRef.putFile(imageUri).addOnSuccessListener(taskSnapshot ->
-                fileRef.getDownloadUrl().addOnSuccessListener(uri ->
-                        saveToFirebase(firstName, lastName, bio, uri.toString())
-                ).addOnFailureListener(e -> {
-                    setSaving(false);
-                    Toast.makeText(EditProfileActivity.this, R.string.toast_update_failed, Toast.LENGTH_SHORT).show();
-                })
-        ).addOnFailureListener(e -> {
+        try {
+            MediaManager.get().upload(uploadUri)
+                    .unsigned("profile_preset")
+                    .option("public_id", userId + "_profile_pic_" + System.currentTimeMillis())
+                    .callback(new UploadCallback() {
+                        @Override
+                        public void onStart(String requestId) {
+                        }
+
+                        @Override
+                        public void onProgress(String requestId, long bytes, long totalBytes) {
+                        }
+
+                        @Override
+                        public void onSuccess(String requestId, Map resultData) {
+                            String imageUrl = imageUrlFromCloudinaryResult(resultData);
+                            runOnUiThread(() -> {
+                                if (imageUrl != null && !imageUrl.isEmpty()) {
+                                    saveToFirebase(firstName, lastName, bio, imageUrl);
+                                } else {
+                                    setSaving(false);
+                                    Toast.makeText(EditProfileActivity.this, R.string.toast_upload_failed, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(String requestId, ErrorInfo error) {
+                            runOnUiThread(() -> {
+                                setSaving(false);
+                                String msg = error != null && error.getDescription() != null
+                                        ? error.getDescription()
+                                        : getString(R.string.toast_upload_failed);
+                                if (error != null) {
+                                    msg = "[" + error.getCode() + "] " + msg;
+                                }
+                                Toast.makeText(EditProfileActivity.this, msg, Toast.LENGTH_SHORT).show();
+                            });
+                        }
+
+                        @Override
+                        public void onReschedule(String requestId, ErrorInfo error) {
+                        }
+                    })
+                    .dispatch();
+        } catch (IllegalStateException e) {
             setSaving(false);
-            Toast.makeText(EditProfileActivity.this, R.string.toast_upload_failed, Toast.LENGTH_SHORT).show();
-        });
+            Toast.makeText(this, R.string.toast_upload_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Nullable
+    private Uri copyImageToCacheForUpload(@NonNull Uri sourceUri) {
+        File out = new File(getCacheDir(), "profile_upload_" + userId.hashCode() + ".jpg");
+        try (InputStream in = getContentResolver().openInputStream(sourceUri);
+             FileOutputStream fos = new FileOutputStream(out)) {
+            if (in == null) {
+                return null;
+            }
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) != -1) {
+                fos.write(buf, 0, n);
+            }
+            return Uri.fromFile(out);
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     private void saveToFirebase(String firstName, String lastName, String bio, @Nullable String newImageUrl) {
@@ -179,21 +297,27 @@ public class EditProfileActivity extends AppCompatActivity {
         updates.put("lastName", lastName);
         updates.put("bio", bio);
         if (newImageUrl != null) {
-            updates.put("profileImageUrl", newImageUrl);
+            updates.put("profileImageUrl", withCacheBuster(newImageUrl));
         }
 
         setSaving(true);
         mDatabase.child("users").child(userId).updateChildren(updates).addOnCompleteListener(task -> {
             setSaving(false);
-            if (task.isSuccessful()) {
-                Toast.makeText(EditProfileActivity.this, R.string.toast_profile_updated, Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(EditProfileActivity.this, ProfileActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish();
-            } else {
+            if (!task.isSuccessful()) {
                 Toast.makeText(EditProfileActivity.this, R.string.toast_update_failed, Toast.LENGTH_SHORT).show();
+                return;
             }
+            Toast.makeText(EditProfileActivity.this, R.string.toast_profile_updated, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(EditProfileActivity.this, ProfileActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
         });
+    }
+
+    @NonNull
+    private static String withCacheBuster(@NonNull String url) {
+        String sep = url.contains("?") ? "&" : "?";
+        return url + sep + "t=" + System.currentTimeMillis();
     }
 }

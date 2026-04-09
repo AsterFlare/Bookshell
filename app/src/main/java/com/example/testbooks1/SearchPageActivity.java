@@ -3,6 +3,7 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SearchPageActivity extends AppCompatActivity {
+    private static final String TAG = "SearchPageActivity";
 
     ProgressBar progress;
     RecyclerView rvBooks;
@@ -72,6 +74,9 @@ public class SearchPageActivity extends AppCompatActivity {
             } else if (id == R.id.nav_search) {
                 //startActivity(new Intent(c, SearchActivity.class));
                 return true;
+            } else if (id == R.id.nav_community) {
+                startActivity(new Intent(c, CommunityActivity.class));
+                return true;
             } else if (id == R.id.nav_library) {
                 startActivity(new Intent(c, LibraryActivity.class));
                 return true;
@@ -101,6 +106,7 @@ public class SearchPageActivity extends AppCompatActivity {
                 response -> {
                     try {
                         progress.setVisibility(View.GONE);
+                        int previousSize = bookList.size();
                         bookList.clear();
                         if (!response.has("items")) return;
 
@@ -149,10 +155,12 @@ public class SearchPageActivity extends AppCompatActivity {
                             }
                             bookList.add(new Book(id, title, imageUrl, author, description, publisher, category, readerLink));
                         }
-
-                        adapter.notifyDataSetChanged();
+                        if (previousSize > 0) {
+                            adapter.notifyItemRangeRemoved(0, previousSize);
+                        }
+                        adapter.notifyItemRangeInserted(0, bookList.size());
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Failed parsing search results", e);
                     }
                 },
                 error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
