@@ -12,10 +12,12 @@
 
     <ImageView
         android:layout_width="wrap_content"
-        android:layout_height="120dp"
+        android:layout_height="200dp"
         android:layout_gravity="center"
+        android:layout_marginTop="-42dp"
+        android:layout_marginBottom="-30dp"
         android:adjustViewBounds="true"
-        android:scaleType="centerInside"
+        android:scaleType="fitCenter"
         android:contentDescription="@string/logo_desc"
         android:src="@drawable/logo" />
 
@@ -52,17 +54,17 @@
                 android:textAlignment="center"
                 android:textSize="30sp"
                 android:fontFamily="@font/jakarta_extra_bold"
-                android:textColor="@color/lightBlue"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="10dp"
+                style="@style/BookshellBrandLightBlue" />
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/login_tagline"
                 android:textAlignment="center"
                 android:textSize="18sp"
-                android:textColor="@color/lightBlue"
                 android:fontFamily="@font/jakarta_light"
-                android:layout_marginBottom="30dp"/>
+                android:layout_marginBottom="30dp"
+                style="@style/BookshellBrandLightBlue" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -112,6 +114,7 @@
 
             <Button
                 android:id="@+id/loginBtn"
+                style="@style/Widget.Bookshell.Button.Gold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/lightBrown"

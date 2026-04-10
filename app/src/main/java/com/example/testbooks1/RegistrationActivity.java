@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import android.content.Intent;
 import android.util.Patterns;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -41,16 +42,22 @@ public class RegistrationActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registration);
         c = this;
-        initialize();
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.activity_registration), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            int left = v.getPaddingLeft() + systemBars.left;
-            int top = v.getPaddingTop() + systemBars.top;
-            int right = v.getPaddingRight() + systemBars.right;
-            int bottom = v.getPaddingBottom() + systemBars.bottom;
-            v.setPadding(left, top, right, bottom);
+        View root = findViewById(R.id.activity_registration);
+        final int baseLeft = root.getPaddingLeft();
+        final int baseTop = root.getPaddingTop();
+        final int baseRight = root.getPaddingRight();
+        final int baseBottom = root.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            int insetTypes = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime();
+            Insets combined = insets.getInsets(insetTypes);
+            v.setPadding(
+                    baseLeft + combined.left,
+                    baseTop + combined.top,
+                    baseRight + combined.right,
+                    baseBottom + combined.bottom);
             return insets;
         });
+        initialize();
     }
 
     public void initialize(){
@@ -84,48 +91,65 @@ public class RegistrationActivity extends AppCompatActivity {
             } if (password.isEmpty()) {
                 Toast.makeText(c, "Please enter your password.", Toast.LENGTH_SHORT).show();
                 return;
-            } if (password.length() < 6) {
-                Toast.makeText(c, "Password must be at least 6 characters.", Toast.LENGTH_SHORT).show();
-            } else {
-                mAuth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                FirebaseUser user = mAuth.getCurrentUser();
-                                if (user != null) {
-                                    String uid = user.getUid();
-                                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
-                                    User newUser = new User(fName, lName, email);
-                                    ref.child(uid).setValue(newUser).addOnCompleteListener(dbTask -> {
-                                        if (dbTask.isSuccessful()) {
-                                            user.sendEmailVerification();
-                                            Toast.makeText(c, "Registration successful. Please verify your email.", Toast.LENGTH_LONG).show();
-                                            startActivity(new Intent(c, LoginActivity.class));
-                                        } else {
-                                            Toast.makeText(c, "Failed to save user data.", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                }
-                            } else {
-                                try {
-                                    Exception cause = task.getException();
-                                    if (cause == null) {
-                                        throw new Exception("Unknown registration error");
-                                    }
-                                    throw cause;
-                                } catch (FirebaseAuthUserCollisionException e) {
-                                    Toast.makeText(c, "This email is already registered.", Toast.LENGTH_SHORT).show();
-                                } catch (FirebaseAuthWeakPasswordException e) {
-                                    Toast.makeText(c, "Password is too weak.", Toast.LENGTH_SHORT).show();
-                                } catch (FirebaseAuthInvalidCredentialsException e) {
-                                    Toast.makeText(c, "Invalid email format.", Toast.LENGTH_SHORT).show();
-                                } catch (FirebaseAuthException e) {
-                                    Toast.makeText(c, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                } catch (Exception e) {
-                                    Toast.makeText(c, "Registration failed. Please try again.", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
             }
+            if (password.length() < 8) {
+                Toast.makeText(c, R.string.toast_password_too_short, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            boolean hasUpper = false, hasLower = false, hasDigit = false;
+            for (int i = 0; i < password.length(); i++) {
+                char ch = password.charAt(i);
+                if (Character.isUpperCase(ch)) {
+                    hasUpper = true;
+                } else if (Character.isLowerCase(ch)) {
+                    hasLower = true;
+                } else if (Character.isDigit(ch)) {
+                    hasDigit = true;
+                }
+            }
+            if (!hasUpper || !hasLower || !hasDigit) {
+                Toast.makeText(c, R.string.toast_password_too_short, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            mAuth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            if (user != null) {
+                                String uid = user.getUid();
+                                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
+                                User newUser = new User(fName, lName, email);
+                                ref.child(uid).setValue(newUser).addOnCompleteListener(dbTask -> {
+                                    if (dbTask.isSuccessful()) {
+                                        user.sendEmailVerification();
+                                        Toast.makeText(c, "Registration successful. Please verify your email.", Toast.LENGTH_LONG).show();
+                                        startActivity(new Intent(c, LoginActivity.class));
+                                    } else {
+                                        Toast.makeText(c, "Failed to save user data.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            try {
+                                Exception cause = task.getException();
+                                if (cause == null) {
+                                    throw new Exception("Unknown registration error");
+                                }
+                                throw cause;
+                            } catch (FirebaseAuthUserCollisionException e) {
+                                Toast.makeText(c, "This email is already registered.", Toast.LENGTH_SHORT).show();
+                            } catch (FirebaseAuthWeakPasswordException e) {
+                                Toast.makeText(c, R.string.toast_password_too_weak, Toast.LENGTH_SHORT).show();
+                            } catch (FirebaseAuthInvalidCredentialsException e) {
+                                Toast.makeText(c, "Invalid email format.", Toast.LENGTH_SHORT).show();
+                            } catch (FirebaseAuthException e) {
+                                Toast.makeText(c, e.getMessage(), Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                Toast.makeText(c, "Registration failed. Please try again.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
         });
 
         tvAlreadyRegistered.setOnClickListener(v -> {

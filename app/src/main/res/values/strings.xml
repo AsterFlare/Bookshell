@@ -11,6 +11,7 @@
     <string name="toast_password_mismatch">Passwords do not match</string>
     <string name="toast_password_updated">Password updated</string>
     <string name="logo_desc">Logo</string>
+    <string name="desc_create_community_list">Create a community list</string>
     <string name="profile_menu_desc">Profile Menu</string>
     <string name="profile_name">Elena Waters</string>
     <string name="profile_name_format">%1$s %2$s</string>
@@ -28,7 +29,7 @@
     <string name="badge_requirement_novice_reader">Read 10 books</string>
     <string name="badge_requirement_bookworm">Read 50 books</string>
     <string name="badge_requirement_ancient_pearl">Read 100 books</string>
-    <string name="badge_requirement_starfish_rater">Leave 5 reviews</string>
+    <string name="badge_requirement_starfish_rater">Leave 1 review</string>
     <string name="badge_requirement_tidal_curator">Create 1 list</string>
     <string name="badges_unlocked_summary_format">%1$d / %2$d badges unlocked</string>
     <string name="badges_unlocked_count_format">%1$d/%2$d</string>
@@ -39,7 +40,16 @@
     <string name="badge_bookworm_count">50 BOOKS</string>
     <string name="streak_label">Reading Streak</string>
     <string name="streak_days">14 Days</string>
-    <string name="streak_days_format">%1$d Days</string>
+    <plurals name="streak_days_format">
+        <item quantity="one">%1$d Day</item>
+        <item quantity="other">%1$d Days</item>
+    </plurals>
+    <plurals name="library_reading_streak_banner">
+        <item quantity="one">You\'re on a %1$d-day reading streak! Keep it up.</item>
+        <item quantity="other">You\'re on a %1$d-day reading streak! Keep it up.</item>
+    </plurals>
+    <string name="toast_sign_in_to_react">Sign in to react to lists.</string>
+    <string name="toast_sign_in_for_community">Sign in to create and share community lists.</string>
     <string name="action_daily_check_in">Daily Check-in</string>
     <string name="action_checked_in_today">Checked in today</string>
     <string name="streak_reset_info">Resets at midnight PST</string>
@@ -47,6 +57,14 @@
     <string name="toast_checked_in_today">Daily check-in saved</string>
     <string name="toast_check_in_failed">Could not save daily check-in</string>
     <string name="weekly_activity">WEEKLY ACTIVITY</string>
+    <!-- Week slots: index 0 = Monday … 6 = Sunday (same order as PST helpers in Profile/Library) -->
+    <string name="weekday_mon">Mon</string>
+    <string name="weekday_tue">Tue</string>
+    <string name="weekday_wed">Wed</string>
+    <string name="weekday_thu">Thu</string>
+    <string name="weekday_fri">Fri</string>
+    <string name="weekday_sat">Sat</string>
+    <string name="weekday_sun">Sun</string>
     <string name="section_currently_diving_in">Currently Diving In</string>
     <string name="book_title_1">The Ocean\'s Whisper</string>
     <string name="book_author_1">By Julian Finch</string>
@@ -54,6 +72,9 @@
     <string name="book_author_2">By Clara M. Bell</string>
     <string name="action_continue">CONTINUE</string>
     <string name="currently_reading_empty">Nothing here yet. Open your library and set a book to &quot;Currently Reading&quot;.</string>
+    <string name="want_to_read_empty">Nothing here yet. Add books from search and set them to &quot;Want to Read&quot;.</string>
+    <string name="read_shelf_empty">Books you mark as Read will appear here.</string>
+    <string name="shelf_read">Read</string>
     <string name="star_badge_desc">Star Badge</string>
 
     <!-- My Badges Strings -->
@@ -76,7 +97,7 @@
     <string name="badge_tidal_curator">Tidal Curator</string>
     <string name="desc_tidal_curator">CREATE A LIST</string>
     <string name="badge_starfish_rater">Starfish Rater</string>
-    <string name="desc_starfish_rater">LEAVE 5 REVIEWS</string>
+    <string name="desc_starfish_rater">LEAVE 1 REVIEW</string>
     <string name="badge_ancient_pearl">Ancient Pearl</string>
     <string name="desc_ancient_pearl">READ 100 BOOKS</string>
     <string name="level_number">4</string>
@@ -88,7 +109,6 @@
     <string name="title_edit_profile">Edit Profile</string>
     <string name="edit_profile_subtitle">Public profile details others can see.</string>
     <string name="title_settings">Settings</string>
-    <string name="settings_account_details">Account details</string>
     <string name="settings_edit_password">Edit password</string>
     <string name="action_save_email">Save</string>
     <string name="toast_email_updated">Email updated successfully.</string>
@@ -109,7 +129,7 @@
     <string name="toast_password_same_as_current">New password must be different from current password.</string>
     <string name="toast_current_password_incorrect">Current password is incorrect.</string>
     <string name="content_desc_toggle_password">Show or hide password</string>
-    <string name="toast_password_too_short">Password must be at least 6 characters</string>
+    <string name="toast_password_too_short">Password must be at least 8 characters and include uppercase, lowercase, and a number</string>
     <string name="toast_invalid_email">Enter a valid email address</string>
     <string name="toast_auth_update_failed">Could not update email or password. Sign in again and try, or use Forgot password.</string>
     <string name="toast_email_update_failed">Could not update email. Please try again.</string>
@@ -118,10 +138,11 @@
     <string name="toast_email_already_in_use">That email is already in use by another account.</string>
     <string name="title_confirm_email_change">Confirm current password</string>
     <string name="msg_confirm_email_change">For security, enter your current password to change your email.</string>
-    <string name="toast_password_too_weak">Password is too weak. Use at least 6 characters.</string>
+    <string name="toast_password_too_weak">Password is too weak. Use at least 8 characters with uppercase, lowercase, and a number.</string>
     <string name="title_confirm_logout">Log out of BookShell?</string>
     <string name="msg_confirm_logout">You can always sign back in later.</string>
     <string name="bio_default_text">This user has not set their biography yet.</string>
+    <string name="bio_edit_hint">Optional — share what you like to read.</string>
     <string name="label_bio">Bio</string>
     <string name="action_save_changes">Save Changes</string>
     <string name="action_cancel_changes">Cancel</string>
@@ -141,6 +162,13 @@
     <string name="toast_stats_load_failed">Could not load your stats</string>
     <string name="toast_profile_load_failed">Could not load profile</string>
     <string name="toast_currently_reading_failed">Could not load currently reading list</string>
+    <string name="toast_list_shared_success">List shared successfully</string>
+    <string name="toast_share_list_failed">Could not share your list. Check your connection and try again.</string>
+    <string name="toast_list_updated_success">List updated successfully</string>
+    <string name="toast_review_added">Review added!</string>
+    <string name="toast_review_failed">Could not post review. Try again.</string>
+    <string name="toast_review_stats_failed">Review saved, but stats may update shortly.</string>
+    <string name="toast_comment_failed">Could not post comment. Try again.</string>
     <string name="toast_books_load_failed">Could not load book suggestions right now.</string>
     <string name="edit_saving">Saving…</string>
     <string name="action_close">Close</string>
@@ -168,8 +196,99 @@
     <string name="placeholder_list_description">List Description</string>
     <string name="zero">0</string>
     <string name="cd_reaction_heart">Heart reaction</string>
+    <string name="cd_reaction_like">Like reaction</string>
     <string name="cd_reaction_comment">Comment reaction</string>
     <string name="hint_current_password">Enter current password</string>
     <string name="hint_new_password">Enter new password</string>
     <string name="hint_confirm_new_password">Confirm new password</string>
+
+    <!-- Book detail & shelves -->
+    <string name="placeholder_book_title">Book Title</string>
+    <string name="placeholder_author">Author</string>
+    <string name="label_genre_caps">GENRE</string>
+    <string name="status_want_to_read">Want to Read</string>
+    <string name="status_currently_reading">Currently Reading</string>
+    <string name="action_preview">Preview</string>
+    <string name="action_create_list">Create List</string>
+    <string name="action_add_to_list">Add to List</string>
+    <string name="section_quick_reactions">QUICK REACTIONS</string>
+    <string name="section_synopsis">Synopsis</string>
+    <string name="placeholder_description">Text here</string>
+    <string name="section_leave_review">Leave a Review</string>
+    <string name="hint_write_review">Write your thoughts…</string>
+    <string name="action_post_review">Post Review</string>
+    <string name="section_community_reviews">Community Reviews</string>
+    <string name="no_reviews_available">No reviews available.</string>
+    <string name="cd_book_cover_detail">Book cover</string>
+    <string name="cd_back">Back</string>
+    <string name="one">1</string>
+    <string name="reaction_fire">Fire reaction</string>
+    <string name="reaction_sad">Sad reaction</string>
+    <string name="reaction_angry">Angry reaction</string>
+
+    <!-- Registration -->
+    <string name="registration_title">Create Account</string>
+    <string name="registration_tagline">Dive into your next big adventure.</string>
+    <string name="label_first_name_caps">FIRST NAME</string>
+    <string name="hint_first_name">Enter first name</string>
+    <string name="label_last_name_caps">LAST NAME</string>
+    <string name="hint_last_name">Enter last name</string>
+    <string name="label_email_caps">EMAIL ADDRESS</string>
+    <string name="hint_enter_email_short">Enter email</string>
+    <string name="label_password_caps">PASSWORD</string>
+    <string name="action_sign_up">Sign Up</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="action_log_in">Log In</string>
+
+    <!-- List create / add / edit -->
+    <string name="curate_heading">CURATE YOUR WORLD</string>
+    <string name="create_new_list_title">Create a New List</string>
+    <string name="create_list_subtitle">Gather your favorite stories and share your reading journey with the tidal community.</string>
+    <string name="label_title_field">Title</string>
+    <string name="hint_list_title_example">eg., Midnight Waves</string>
+    <string name="label_description_field">Description</string>
+    <string name="hint_list_description">Tell the community what makes this collection special…</string>
+    <string name="hint_list_description_alt">Tell the community what  makes this collection special…</string>
+    <string name="label_cover_image">Cover Image</string>
+    <string name="tap_upload_image">Tap to upload image</string>
+    <string name="cover_upload_hint">Upload a cover (JPEG/PNG, max 2 MB recommended)</string>
+    <string name="cover_update_hint">Tap to update the cover (JPEG/PNG, max 2 MB recommended)</string>
+    <string name="section_select_books">Select Books</string>
+    <string name="select_books_subtitle">Select titles from your library to include.</string>
+    <string name="share_to_community">Share to Community</string>
+    <string name="share_to_community_desc">Your list will be visible to all members of the Bookshell reef.</string>
+    <string name="update_list_title">Update List</string>
+    <string name="update_list_subtitle">Update your list and keep sharing your reading journey with the tidal community.</string>
+    <string name="brand_bookshell">Bookshell</string>
+    <string name="search_action">Search</string>
+    <string name="section_trending_topics">TRENDING TOPICS</string>
+    <string name="topic_fantasy">Fantasy</string>
+    <string name="topic_coastal_myths">Coastal Myths</string>
+    <string name="topic_new_releases">New Releases</string>
+    <string name="topic_marine_biology">Marine Biology</string>
+    <string name="topic_classic_sails">Classic Sails</string>
+    <string name="section_recently_viewed">Recently Viewed</string>
+    <string name="no_recently_viewed">No recently viewed.</string>
+    <string name="section_most_read">Most Read Books</string>
+    <string name="no_most_read">No most read books yet.</string>
+    <string name="community_activity_title">Community Activity</string>
+    <string name="community_activity_subtitle">Discover what other curators are shelfing right now in their personal collections.</string>
+    <string name="no_community_list">No community list available.</string>
+    <string name="section_curation">CURATION</string>
+    <string name="books_today">Books Today</string>
+    <string name="recommended_for_you">Recommended For You</string>
+    <string name="recommended_subtitle">Based on your favorite categories</string>
+    <string name="cd_currently_reading_icon">Currently reading</string>
+    <string name="library_title">My Library</string>
+    <string name="library_subtitle">Dive back into your curated world of stories and knowledge. Your progress is saved automatically.</string>
+    <string name="filter_all">All</string>
+    <string name="weekly_progress">Weekly Progress</string>
+    <string name="sample_book_tidal_flow">The Tidal Flow</string>
+    <string name="sample_book_author_elena">by Elena Maris</string>
+    <string name="sample_book_blurb">\'An exploration of coastal ecosystems and the rhythmic beauty of our blue planet\'s most…</string>
+    <string name="action_continue_reading">Continue Reading</string>
+    <string name="search_no_results">No results found.</string>
+    <string name="search_results_count">%1$d results</string>
+    <string name="author_by_line">by %1$s</string>
+    <string name="toast_enter_search_query">Please enter a search query.</string>
 </resources>

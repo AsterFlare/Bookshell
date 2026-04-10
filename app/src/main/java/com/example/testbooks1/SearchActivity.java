@@ -8,7 +8,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.annotation.SuppressLint;
+
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -29,10 +32,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@SuppressLint("NotifyDataSetChanged")
 public class SearchActivity extends AppCompatActivity {
 
     EditText etSearch;
@@ -105,7 +109,7 @@ public class SearchActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                startActivity(new Intent(c, MainActivity.class));
+                MainActivity.openHome(c);
                 return true;
             } else if (id == R.id.nav_search) {
                 //startActivity(new Intent(c, SearchActivity.class));
@@ -129,7 +133,7 @@ public class SearchActivity extends AppCompatActivity {
 
         userBooksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 HashMap<String, BookCount> bookMap = new HashMap<>();
 
                 for (DataSnapshot userSnapshot : snapshot.getChildren()) {
@@ -146,8 +150,9 @@ public class SearchActivity extends AppCompatActivity {
                             String readerLink = bookSnapshot.child("readerLink").getValue(String.class);
 
                             if (bookId != null && title != null) {
-                                if (bookMap.containsKey(bookId)) {
-                                    bookMap.get(bookId).count++;
+                                BookCount existing = bookMap.get(bookId);
+                                if (existing != null) {
+                                    existing.count++;
                                 } else {
                                     bookMap.put(bookId, new BookCount(
                                             bookId, title, imageUrl, author,
@@ -160,7 +165,7 @@ public class SearchActivity extends AppCompatActivity {
 
                 // Sort by read count descending
                 List<BookCount> sortedList = new ArrayList<>(bookMap.values());
-                Collections.sort(sortedList, (a, b) -> b.count - a.count);
+                sortedList.sort((a, b) -> b.count - a.count);
                 bookList.clear();
                 for (BookCount bc : sortedList) {
                     bookList.add(new Book(
@@ -179,7 +184,7 @@ public class SearchActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(c, "Failed to load most read books", Toast.LENGTH_SHORT).show();
             }
         });
@@ -196,17 +201,52 @@ public class SearchActivity extends AppCompatActivity {
         ref.orderByChild("timestamp").limitToLast(10)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        recentList.clear();
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Map<String, Book> bestById = new HashMap<>();
+                        Map<String, Long> bestTs = new HashMap<>();
 
                         for (DataSnapshot ds : snapshot.getChildren()) {
                             Book book = ds.getValue(Book.class);
-                            if (book != null) {
-                                recentList.add(book);
+                            if (book == null) {
+                                continue;
+                            }
+                            String id = book.getId();
+                            if (id == null || id.isEmpty()) {
+                                id = ds.getKey();
+                            }
+                            if (id == null || id.isEmpty()) {
+                                continue;
+                            }
+                            Long ts = ds.child("timestamp").getValue(Long.class);
+                            if (ts == null) {
+                                ts = 0L;
+                            }
+                            Long prev = bestTs.get(id);
+                            if (prev == null || ts >= prev) {
+                                if (book.getId() == null || book.getId().isEmpty()) {
+                                    book.setId(id);
+                                }
+                                bestById.put(id, book);
+                                bestTs.put(id, ts);
                             }
                         }
 
-                        Collections.reverse(recentList);
+                        List<String> ids = new ArrayList<>(bestById.keySet());
+                        ids.sort((a, b) -> {
+                            Long xb = bestTs.get(b);
+                            Long xa = bestTs.get(a);
+                            long lb = xb != null ? xb : 0L;
+                            long la = xa != null ? xa : 0L;
+                            return Long.compare(lb, la);
+                        });
+
+                        recentList.clear();
+                        for (String id : ids) {
+                            recentList.add(bestById.get(id));
+                            if (recentList.size() >= 10) {
+                                break;
+                            }
+                        }
                         recentAdapter.notifyDataSetChanged();
 
                         if (recentList.isEmpty()) {
@@ -218,7 +258,7 @@ public class SearchActivity extends AppCompatActivity {
                         }
                     }
                     @Override
-                    public void onCancelled(DatabaseError error) {}
+                    public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
 

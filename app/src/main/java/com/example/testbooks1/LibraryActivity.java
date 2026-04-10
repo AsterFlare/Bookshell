@@ -4,13 +4,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import android.content.res.ColorStateList;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -19,9 +24,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.testbooks1.Adapter.UserBooksAdapter;
+import com.example.testbooks1.BadgeRules;
 import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.CommunityBook;
-import com.example.testbooks1.Model.UserBook;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.database.DataSnapshot;
@@ -30,17 +35,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.TimeZone;
 
+@SuppressLint("NotifyDataSetChanged")
 public class LibraryActivity extends AppCompatActivity {
+
+    private static final String STREAK_ZONE_ID = "Asia/Manila";
 
     BottomNavigationView bottomNav;
     private Context c;
 
-    // UI Elements
-    private View currentlyReadingCard, currentlyReadingHeader, weeklyProgressCard;
-    private TextView tvReadingStreak;
+    private View currentlyReadingCard, currentlyReadingHeader;
     private MaterialButton btnAll, btnCurrentlyReadingTab;
     private ImageView ivCurrentBookCover;
     private TextView tvCurrentBookTitle, tvCurrentBookAuthor, tvCurrentBookDescription;
@@ -49,6 +59,15 @@ public class LibraryActivity extends AppCompatActivity {
     private RecyclerView rvWantToRead;
     private UserBooksAdapter wantToReadAdapter;
     private ArrayList<CommunityBook> wantToReadList;
+    private TextView tvWantToReadEmpty;
+    private View readShelfHeader;
+    private RecyclerView rvRead;
+    private UserBooksAdapter readAdapter;
+    private ArrayList<CommunityBook> readList;
+    private TextView tvReadEmpty;
+    private TextView tvLibraryStreakBanner;
+    private ValueEventListener libraryStatsListener;
+    private View[] weeklyDots;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +79,7 @@ public class LibraryActivity extends AppCompatActivity {
         initViews();
         initialize();
         loadLibraryData();
-        loadReadingStreak();
+        listenLibraryStreak();
         
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -77,22 +96,40 @@ public class LibraryActivity extends AppCompatActivity {
         tvCurrentBookTitle = findViewById(R.id.tvCurrentBookTitle);
         tvCurrentBookAuthor = findViewById(R.id.tvCurrentBookAuthor);
         tvCurrentBookDescription = findViewById(R.id.tvCurrentBookDescription);
-        tvReadingStreak = findViewById(R.id.tvReadingStreak);
         btnContinueReading = findViewById(R.id.btnContinueReading);
 
         btnAll = findViewById(R.id.btn_all);
         btnCurrentlyReadingTab = findViewById(R.id.btn_currently_reading_tab);
         rvWantToRead = findViewById(R.id.rvWantToRead);
+        tvWantToReadEmpty = findViewById(R.id.tvWantToReadEmpty);
+        readShelfHeader = findViewById(R.id.readShelfHeader);
+        rvRead = findViewById(R.id.rvRead);
+        tvReadEmpty = findViewById(R.id.tvReadEmpty);
+        tvLibraryStreakBanner = findViewById(R.id.tvReadingStreak);
+        weeklyDots = new View[]{
+                findViewById(R.id.weekly_dot_0),
+                findViewById(R.id.weekly_dot_1),
+                findViewById(R.id.weekly_dot_2),
+                findViewById(R.id.weekly_dot_3),
+                findViewById(R.id.weekly_dot_4),
+                findViewById(R.id.weekly_dot_5),
+                findViewById(R.id.weekly_dot_6),
+        };
 
         btnAll.setOnClickListener(v -> updateTabUI(true));
         btnCurrentlyReadingTab.setOnClickListener(v -> updateTabUI(false));
 
         wantToReadList = new ArrayList<>();
-        // UserBooksAdapter expects (Context, ArrayList<CommunityBook>, HashSet<String>, OnBookSelectListener)
-        // Passing an empty HashSet and null listener to use the adapter's default detail-view behavior.
         wantToReadAdapter = new UserBooksAdapter(c, wantToReadList, new HashSet<>(), null);
         rvWantToRead.setLayoutManager(new GridLayoutManager(this, 2));
         rvWantToRead.setAdapter(wantToReadAdapter);
+        applyWantToReadEmptyState();
+
+        readList = new ArrayList<>();
+        readAdapter = new UserBooksAdapter(c, readList, new HashSet<>(), null);
+        rvRead.setLayoutManager(new GridLayoutManager(this, 2));
+        rvRead.setAdapter(readAdapter);
+        applyReadEmptyState();
     }
 
     private void updateTabUI(boolean isAll) {
@@ -103,20 +140,46 @@ public class LibraryActivity extends AppCompatActivity {
             btnCurrentlyReadingTab.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.white)));
             btnCurrentlyReadingTab.setTextColor(getColor(R.color.darkGray));
 
-            // Show everything
             currentlyReadingHeader.setVisibility(currentlyReadingCard.getVisibility() == View.VISIBLE ? View.VISIBLE : View.GONE);
-            rvWantToRead.setVisibility(View.VISIBLE);
             wantToReadHeader.setVisibility(View.VISIBLE);
+            readShelfHeader.setVisibility(View.VISIBLE);
+            applyWantToReadEmptyState();
+            applyReadEmptyState();
         } else {
             btnCurrentlyReadingTab.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.navyBlue)));
             btnCurrentlyReadingTab.setTextColor(getColor(R.color.white));
             btnAll.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(R.color.white)));
             btnAll.setTextColor(getColor(R.color.darkGray));
 
-            // Show only currently reading
             rvWantToRead.setVisibility(View.GONE);
             wantToReadHeader.setVisibility(View.GONE);
+            if (tvWantToReadEmpty != null) {
+                tvWantToReadEmpty.setVisibility(View.GONE);
+            }
+            readShelfHeader.setVisibility(View.GONE);
+            rvRead.setVisibility(View.GONE);
+            if (tvReadEmpty != null) {
+                tvReadEmpty.setVisibility(View.GONE);
+            }
         }
+    }
+
+    private void applyWantToReadEmptyState() {
+        if (tvWantToReadEmpty == null || rvWantToRead == null || wantToReadList == null) {
+            return;
+        }
+        boolean empty = wantToReadList.isEmpty();
+        tvWantToReadEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+        rvWantToRead.setVisibility(empty ? View.GONE : View.VISIBLE);
+    }
+
+    private void applyReadEmptyState() {
+        if (tvReadEmpty == null || rvRead == null || readList == null) {
+            return;
+        }
+        boolean empty = readList.isEmpty();
+        tvReadEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+        rvRead.setVisibility(empty ? View.GONE : View.VISIBLE);
     }
 
     private void loadLibraryData() {
@@ -129,12 +192,11 @@ public class LibraryActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 wantToReadList.clear();
+                readList.clear();
                 boolean currentReadingFound = false;
 
                 for (DataSnapshot bookSnapshot : snapshot.getChildren()) {
                     String status = bookSnapshot.child("status").getValue(String.class);
-                    
-                    // We map the data to CommunityBook as UserBooksAdapter uses it
                     String title = bookSnapshot.child("title").getValue(String.class);
                     String author = bookSnapshot.child("author").getValue(String.class);
                     String imageUrl = bookSnapshot.child("imageUrl").getValue(String.class);
@@ -147,8 +209,10 @@ public class LibraryActivity extends AppCompatActivity {
                     if ("Currently Reading".equals(status) && !currentReadingFound) {
                         displayCurrentlyReading(book);
                         currentReadingFound = true;
-                    } else if ("Want to Read".equals(status) || "Read".equals(status)) {
+                    } else if ("Want to Read".equals(status)) {
                         wantToReadList.add(book);
+                    } else if ("Read".equals(status)) {
+                        readList.add(book);
                     }
                 }
 
@@ -161,6 +225,9 @@ public class LibraryActivity extends AppCompatActivity {
                 }
 
                 wantToReadAdapter.notifyDataSetChanged();
+                applyWantToReadEmptyState();
+                readAdapter.notifyDataSetChanged();
+                applyReadEmptyState();
             }
 
             @Override
@@ -170,7 +237,7 @@ public class LibraryActivity extends AppCompatActivity {
 
     private void displayCurrentlyReading(CommunityBook book) {
         tvCurrentBookTitle.setText(book.title);
-        tvCurrentBookAuthor.setText("by " + book.author);
+        tvCurrentBookAuthor.setText(getString(R.string.author_by_line, book.author != null ? book.author : ""));
         tvCurrentBookDescription.setText(book.description);
 
         if (c != null && !isFinishing()) {
@@ -192,32 +259,6 @@ public class LibraryActivity extends AppCompatActivity {
         });
     }
 
-    private void loadReadingStreak() {
-        String uid = AuthManager.getUid();
-        if (uid == null) return;
-        DatabaseReference userRef = FirebaseDatabase.getInstance()
-                .getReference("users")
-                .child(uid)
-                .child("stats");
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    Long streakLong = snapshot.child("readingStreak").getValue(Long.class);
-                    int streak = (streakLong != null) ? streakLong.intValue() : 0;
-                    if (streak > 0) {
-                        tvReadingStreak.setText("You're on a " + streak + "-day reading streak! Keep it up.");
-                    } else {
-                        tvReadingStreak.setText("Start your reading streak today!");
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
-
     public void initialize(){
         bottomNav = findViewById(R.id.bottomNavigationView);
         bottomNav.setSelectedItemId(R.id.nav_library);
@@ -225,7 +266,7 @@ public class LibraryActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                startActivity(new Intent(c, MainActivity.class));
+                MainActivity.openHome(c);
                 return true;
             } else if (id == R.id.nav_search) {
                 startActivity(new Intent(c, SearchActivity.class));
@@ -243,4 +284,134 @@ public class LibraryActivity extends AppCompatActivity {
             return false;
         });
     }
+
+    private void listenLibraryStreak() {
+        String uid = AuthManager.getUid();
+        if (uid == null || tvLibraryStreakBanner == null) {
+            return;
+        }
+        DatabaseReference statsRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(uid)
+                .child("stats");
+        libraryStatsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long streak = BadgeRules.readStatLong(snapshot, "readingStreak");
+                String lastStreakDate = snapshot.child("lastStreakDate").getValue(String.class);
+                String today = streakDayKey();
+                if (streak == 1L && today.equals(lastStreakDate)) {
+                    if (enforceSingleDayWeeklyForStreakOne(uid, snapshot.child("weeklyActivity"))) {
+                        return;
+                    }
+                }
+                int n = streak > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) Math.max(0, streak);
+                tvLibraryStreakBanner.setText(getResources().getQuantityString(
+                        R.plurals.library_reading_streak_banner, n, n));
+                applyWeeklyDotsFromStats(snapshot.child("weeklyActivity"));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        };
+        statsRef.addValueEventListener(libraryStatsListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        String uid = AuthManager.getUid();
+        if (uid != null && libraryStatsListener != null) {
+            FirebaseDatabase.getInstance()
+                    .getReference("users")
+                    .child(uid)
+                    .child("stats")
+                    .removeEventListener(libraryStatsListener);
+            libraryStatsListener = null;
+        }
+        super.onDestroy();
+    }
+
+    private void applyWeeklyDotsFromStats(@NonNull DataSnapshot weeklyActivity) {
+        if (weeklyDots == null) {
+            return;
+        }
+        boolean allZero = true;
+        for (int i = 0; i < 7; i++) {
+            if (BadgeRules.readStatLong(weeklyActivity, String.valueOf(i)) > 0L) {
+                allZero = false;
+                break;
+            }
+        }
+        if (!weeklyActivity.exists() || allZero) {
+            for (View dot : weeklyDots) {
+                if (dot != null) {
+                    setDotAlphaTint(dot, R.color.lightGray, 0.28f);
+                }
+            }
+            return;
+        }
+        for (int d = 0; d < weeklyDots.length; d++) {
+            View dot = weeklyDots[d];
+            if (dot == null) {
+                continue;
+            }
+            long val = BadgeRules.readStatLong(weeklyActivity, String.valueOf(d));
+            if (val > 0L) {
+                setDotAlphaTint(dot, R.color.navyBlue, 0.88f);
+            } else {
+                setDotAlphaTint(dot, R.color.lightGray, 0.38f);
+            }
+        }
+    }
+
+    private void setDotAlphaTint(View dot, int colorResId, float alpha01) {
+        int base = ContextCompat.getColor(this, colorResId);
+        int argb = ColorUtils.setAlphaComponent(base, Math.round(255f * alpha01));
+        dot.setBackgroundTintList(ColorStateList.valueOf(argb));
+    }
+
+    private static TimeZone streakTimeZone() {
+        return TimeZone.getTimeZone(STREAK_ZONE_ID);
+    }
+
+    private static String streakDayKey() {
+        SimpleDateFormat dayKey = new SimpleDateFormat("yyyyMMdd", Locale.US);
+        dayKey.setTimeZone(streakTimeZone());
+        return dayKey.format(Calendar.getInstance().getTime());
+    }
+
+    private static int dayOfWeekIndexStreak() {
+        Calendar cal = Calendar.getInstance(streakTimeZone(), Locale.US);
+        int dow = cal.get(Calendar.DAY_OF_WEEK);
+        return (dow + 5) % 7;
+    }
+
+    private boolean enforceSingleDayWeeklyForStreakOne(String uid, @NonNull DataSnapshot weeklyActivitySnapshot) {
+        int todayIdx = dayOfWeekIndexStreak();
+        boolean needsFix = false;
+        for (int i = 0; i < 7; i++) {
+            long v = BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(i));
+            if (i == todayIdx) {
+                if (v <= 0L) {
+                    needsFix = true;
+                }
+            } else if (v > 0L) {
+                needsFix = true;
+            }
+        }
+        if (!needsFix) {
+            return false;
+        }
+        DatabaseReference waRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(uid)
+                .child("stats")
+                .child("weeklyActivity");
+        for (int i = 0; i < 7; i++) {
+            waRef.child(String.valueOf(i)).setValue(i == todayIdx ? 1L : 0L);
+        }
+        return true;
+    }
+
 }

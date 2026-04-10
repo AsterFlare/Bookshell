@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 public class BookHorizontalAdapter extends RecyclerView.Adapter<BookHorizontalAdapter.ViewHolder> {
 
     Context context;
-    private ArrayList<Book> list;
+    private final ArrayList<Book> list;
 
     public BookHorizontalAdapter(Context context, ArrayList<Book> list) {
         this.context = context;
@@ -46,14 +47,15 @@ public class BookHorizontalAdapter extends RecyclerView.Adapter<BookHorizontalAd
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @NonNull
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context)
                 .inflate(R.layout.item_book_horizontal1, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Book book = list.get(position);
 
         holder.tvTitle.setText(book.getTitle());
@@ -95,6 +97,8 @@ public class BookHorizontalAdapter extends RecyclerView.Adapter<BookHorizontalAd
             intent.putExtra("author", book.getAuthor());
             intent.putExtra("description", book.getDescription());
             intent.putExtra("category", book.getCategory());
+            intent.putExtra("publisher", book.getPublisher());
+            intent.putExtra("readerLink", book.getReaderLink());
             context.startActivity(intent);
         });
     }

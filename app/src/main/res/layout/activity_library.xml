@@ -5,13 +5,53 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/whiteBG">
+    android:background="@color/bg_light">
+
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="wrap_content"
+            android:layout_height="80dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/logo_desc"
+            android:scaleType="centerInside"
+            android:src="@drawable/logo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="@string/app_name"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            style="@style/BookshellBrandLightBlue" />
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
+        android:clipToPadding="false"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -19,41 +59,10 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Top Bar -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp">
-
-                <ImageView
-                    android:id="@+id/logo"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/logo"
-                    android:scaleType="fitStart" />
-                <TextView
-                    android:layout_marginLeft="50dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Bookshell"
-                    android:textAlignment="textStart"
-                    android:textSize="30sp"
-                    android:fontFamily="@font/jakarta_extra_bold"
-                    android:textColor="@color/lightBlue"
-                    android:layout_marginBottom="10dp"/>
-
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/profilenav" />
-            </RelativeLayout>
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="My Library"
+                android:text="@string/library_title"
                 android:textColor="@color/black"
                 android:textSize="32sp"
                 android:textStyle="bold" />
@@ -62,7 +71,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Dive back into your curated world of stories and knowledge. Your progress is saved automatically."
+                android:text="@string/library_subtitle"
                 android:textColor="@color/darkGray"
                 android:textSize="14sp"
                 android:lineSpacingExtra="4dp"/>
@@ -80,7 +89,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:text="All"
+                    android:text="@string/filter_all"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     app:backgroundTint="@color/navyBlue"
@@ -91,7 +100,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="Currently Reading"
+                    android:text="@string/status_currently_reading"
                     android:textAllCaps="false"
                     android:textColor="@color/darkGray"
                     app:backgroundTint="@color/white"
@@ -107,7 +116,7 @@
                 android:layout_marginTop="24dp"
                 app:cardBackgroundColor="@color/lightWhite"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -118,7 +127,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Weekly Progress"
+                        android:text="@string/weekly_progress"
                         android:textColor="@color/navyBlue"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -129,13 +138,77 @@
                         android:layout_marginTop="12dp"
                         android:orientation="horizontal">
 
-                        <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/skyBlue" />
-                        <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/darkerBlue" />
-                        <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/skyBlue" />
-                        <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/darkerBlue" />
-                        <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
-                        <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/navyBlue" />
-                        <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
+                        <View android:id="@+id/weekly_dot_0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
+                        <View android:id="@+id/weekly_dot_1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
+                        <View android:id="@+id/weekly_dot_2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
+                        <View android:id="@+id/weekly_dot_3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
+                        <View android:id="@+id/weekly_dot_4" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
+                        <View android:id="@+id/weekly_dot_5" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
+                        <View android:id="@+id/weekly_dot_6" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="3dp" android:background="@drawable/rounded_button" android:backgroundTint="@color/lightGray" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_mon"
+                            android:textColor="@color/darkGray"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_tue"
+                            android:textColor="@color/darkGray"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_wed"
+                            android:textColor="@color/darkGray"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_thu"
+                            android:textColor="@color/darkGray"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_fri"
+                            android:textColor="@color/darkGray"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_sat"
+                            android:textColor="@color/darkGray"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_sun"
+                            android:textColor="@color/darkGray"
+                            android:textSize="11sp" />
                     </LinearLayout>
 
                     <TextView
@@ -167,7 +240,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="Currently Reading"
+                    android:text="@string/status_currently_reading"
                     android:textColor="@color/black"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -202,6 +275,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
+                            android:contentDescription="@string/cd_book_cover_detail"
                             android:src="@drawable/rounded_image_bg" />
                     </androidx.cardview.widget.CardView>
 
@@ -210,7 +284,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
-                        android:text="The Tidal Flow"
+                        android:text="@string/sample_book_tidal_flow"
                         android:textColor="@color/black"
                         android:textSize="22sp"
                         android:textStyle="bold" />
@@ -220,7 +294,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="by Elena Maris"
+                        android:text="@string/sample_book_author_elena"
                         android:textColor="@color/darkGray"
                         android:textSize="16sp" />
 
@@ -232,7 +306,7 @@
                         android:gravity="center"
                         android:maxLines="3"
                         android:ellipsize="end"
-                        android:text="'An exploration of coastal ecosystems and the rhythmic beauty of our blue planet's most..."
+                        android:text="@string/sample_book_blurb"
                         android:textColor="@color/darkGray"
                         android:textSize="14sp" />
 
@@ -241,7 +315,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="24dp"
-                        android:text="Continue Reading"
+                        android:text="@string/action_continue_reading"
                         android:textAllCaps="false"
                         android:textColor="@color/white"
                         app:backgroundTint="@color/lightBrown"
@@ -267,15 +341,70 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="Want to Read"
+                    android:text="@string/status_want_to_read"
                     android:textColor="@color/black"
                     android:textSize="18sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tvWantToReadEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@string/want_to_read_empty"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
             <!-- RecyclerView for Want to Read -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvWantToRead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_user_book" />
+
+            <LinearLayout
+                android:id="@+id/readShelfHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="16dp"
+                    android:layout_height="2dp"
+                    android:background="@color/lightBrown" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/shelf_read"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvReadEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@string/read_shelf_empty"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRead"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"

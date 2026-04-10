@@ -35,9 +35,9 @@
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
             android:text="@string/app_name"
-            android:textColor="@color/lightBlue"
             android:textSize="26sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            style="@style/BookshellBrandLightBlue" />
 
         <View
             android:layout_width="0dp"
@@ -383,7 +383,85 @@
                             android:layout_width="0dp"
                             android:layout_height="8dp"
                             android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
                             android:background="#B3FFFFFF" />
+                        <View
+                            android:id="@+id/streakBar5"
+                            android:layout_width="0dp"
+                            android:layout_height="8dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:background="#80FFFFFF" />
+                        <View
+                            android:id="@+id/streakBar6"
+                            android:layout_width="0dp"
+                            android:layout_height="8dp"
+                            android:layout_weight="1"
+                            android:background="#B3FFFFFF" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_mon"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_tue"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_wed"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_thu"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_fri"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_sat"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/weekday_sun"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="11sp" />
                     </LinearLayout>
 
                     <TextView

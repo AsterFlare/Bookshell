@@ -44,7 +44,7 @@ public final class BadgeRules {
         if (completed >= 100) {
             n++;
         }
-        if (reviews >= 5) {
+        if (reviews >= 1) {
             n++;
         }
         if (readingLists >= 1) {
@@ -80,7 +80,7 @@ public final class BadgeRules {
         list.add(new BadgeRow(ctx.getString(R.string.badge_novice_reader), completed >= 10, BADGE_ACCENTS[1]));
         list.add(new BadgeRow(ctx.getString(R.string.badge_bookworm), completed >= 50, BADGE_ACCENTS[2]));
         list.add(new BadgeRow(ctx.getString(R.string.badge_ancient_pearl), completed >= 100, BADGE_ACCENTS[3]));
-        list.add(new BadgeRow(ctx.getString(R.string.badge_starfish_rater), reviews >= 5, BADGE_ACCENTS[4]));
+        list.add(new BadgeRow(ctx.getString(R.string.badge_starfish_rater), reviews >= 1, BADGE_ACCENTS[4]));
         list.add(new BadgeRow(ctx.getString(R.string.badge_tidal_curator), readingLists >= 1, BADGE_ACCENTS[5]));
         return list;
     }

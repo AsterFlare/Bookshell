@@ -22,16 +22,17 @@
             android:adjustViewBounds="true"
             android:scaleType="centerInside"
             android:src="@drawable/logo"
-            android:contentDescription="App Logo"/>
+            android:contentDescription="@string/logo_desc"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Bookshell"
+            android:text="@string/brand_bookshell"
             android:textSize="26sp"
-            android:textColor="@color/lightBlue"
             android:fontFamily="@font/jakarta_extra_bold"
             android:layout_gravity="center"
-            android:paddingStart="10dp"/>
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            style="@style/BookshellBrandLightBlue" />
     </LinearLayout>
 
     <LinearLayout
@@ -48,13 +49,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Search"
+            android:hint="@string/search_action"
             android:background="@drawable/rounded_search"
             android:padding="10dp"
             android:inputType="text"
             android:fontFamily="@font/jakarta_light"
             android:drawableStart="@drawable/ic_search"
-            android:drawablePadding="8dp"/>
+            android:drawablePadding="8dp"
+            android:importantForAutofill="no"/>
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -74,12 +76,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TRENDING TOPICS"
+                android:text="@string/section_trending_topics"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="@color/lightBlue"
                 android:fontFamily="@font/jakarta_extra_bold"
-                android:paddingBottom="5dp"/>
+                android:paddingBottom="5dp"
+                style="@style/BookshellBrandLightBlue" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -90,7 +92,7 @@
                     android:id="@+id/tvFantasy"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Fantasy"
+                    android:text="@string/topic_fantasy"
                     android:fontFamily="@font/jakarta_bold"
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
@@ -99,7 +101,7 @@
                     android:id="@+id/tvCoastalMyths"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Coastal Myths"
+                    android:text="@string/topic_coastal_myths"
                     android:fontFamily="@font/jakarta_bold"
                     android:layout_marginStart="8dp"
                     android:padding="8dp"
@@ -109,7 +111,7 @@
                     android:id="@+id/tvNewReleases"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="New Releases"
+                    android:text="@string/topic_new_releases"
                     android:fontFamily="@font/jakarta_bold"
                     android:layout_marginStart="8dp"
                     android:padding="8dp"
@@ -126,7 +128,7 @@
                     android:id="@+id/tvMarineBiology"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Marine Biology"
+                    android:text="@string/topic_marine_biology"
                     android:fontFamily="@font/jakarta_bold"
                     android:padding="8dp"
                     android:backgroundTint="@color/skyBlue"
@@ -135,7 +137,7 @@
                     android:id="@+id/tvClassicSails"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Classic Sails"
+                    android:text="@string/topic_classic_sails"
                     android:fontFamily="@font/jakarta_bold"
                     android:layout_marginStart="8dp"
                     android:padding="8dp"
@@ -145,7 +147,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Recently Viewed"
+                android:text="@string/section_recently_viewed"
                 android:textSize="26sp"
                 android:fontFamily="@font/jakarta_extra_bold"
                 android:textColor="@color/black"
@@ -160,7 +162,7 @@
                 android:id="@+id/tvNoRecent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="No recently viewed."
+                android:text="@string/no_recently_viewed"
                 android:textSize="14sp"
                 android:fontFamily="@font/jakarta_light"
                 android:visibility="gone"
@@ -168,7 +170,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Most Read Books"
+                android:text="@string/section_most_read"
                 android:textSize="26sp"
                 android:textColor="@color/black"
                 android:fontFamily="@font/jakarta_extra_bold"
@@ -183,7 +185,7 @@
                 android:id="@+id/tvNoMostRead"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="No most read books yet."
+                android:text="@string/no_most_read"
                 android:fontFamily="@font/jakarta_light"
                 android:textSize="14sp"
                 android:visibility="gone"

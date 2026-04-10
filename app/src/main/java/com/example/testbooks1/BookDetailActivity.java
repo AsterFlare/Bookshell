@@ -2,10 +2,14 @@ package com.example.testbooks1;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -16,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.testbooks1.Adapter.ReviewAdapter;
+import com.example.testbooks1.BadgeMilestoneHelper;
 import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.Review;
 import com.example.testbooks1.Model.UserBook;
@@ -25,6 +30,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import android.view.View;
@@ -48,6 +54,7 @@ public class BookDetailActivity extends AppCompatActivity {
     RecyclerView rvReviews;
     ImageView btnBack, btnLike, btnFire, btnHeart, btnSad, btnAngry;
     TextView tvLikeCount, tvFireCount, tvHeartCount, tvSadCount, tvAngryCount;
+    private ReviewAdapter reviewAdapter;
     int likeCount = 0, fireCount = 0, heartCount = 0, sadCount = 0, angryCount = 0;
     String bookId;
     Context c;
@@ -58,21 +65,22 @@ public class BookDetailActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_book_detail);
         c = this;
-        initialize();
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        View mainContent = findViewById(R.id.main);
+        final int basePaddingLeft = mainContent.getPaddingLeft();
+        final int basePaddingTop = mainContent.getPaddingTop();
+        final int basePaddingRight = mainContent.getPaddingRight();
+        final int basePaddingBottom = mainContent.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(mainContent, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            int originalLeft = v.getPaddingLeft();
-            int originalTop = v.getPaddingTop();
-            int originalRight = v.getPaddingRight();
-            int originalBottom = v.getPaddingBottom();
             v.setPadding(
-                    originalLeft + systemBars.left,
-                    originalTop + systemBars.top,
-                    originalRight + systemBars.right,
-                    originalBottom + systemBars.bottom
+                    basePaddingLeft + systemBars.left,
+                    basePaddingTop + systemBars.top,
+                    basePaddingRight + systemBars.right,
+                    basePaddingBottom + systemBars.bottom
             );
             return insets;
         });
+        initialize();
     }
 
     public void initialize(){
@@ -264,25 +272,7 @@ public class BookDetailActivity extends AppCompatActivity {
         btnSad.setOnClickListener(v -> incrementReaction("sad"));
         btnAngry.setOnClickListener(v -> incrementReaction("angry"));
 
-        btnPreview.setOnClickListener(v -> {
-            String previewLink = getIntent().getStringExtra("previewLink");
-
-            if (previewLink != null && !previewLink.isEmpty()) {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(android.net.Uri.parse(previewLink));
-                startActivity(intent);
-            } else {
-                String bookId = getIntent().getStringExtra("bookId");
-                if (bookId != null && !bookId.isEmpty()) {
-                    String url = "https://books.google.com/books?id=" + bookId + "&printsec=frontcover&dq&hl=en&source=gbs_api";
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(android.net.Uri.parse(url));
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(c, "Preview not available", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        btnPreview.setOnClickListener(v -> openBookPreview());
 
         btnWantToRead.setOnClickListener(v -> {
             selectStatus(btnWantToRead, btnWantToRead, btnCurrentlyReading, btnCompleted);
@@ -303,20 +293,24 @@ public class BookDetailActivity extends AppCompatActivity {
             String uid = AuthManager.getUid();
             String fullName = UserManager.getFullName();
             if (uid == null) return;
+            btnSubmitReview.setEnabled(false);
 
             String comment = etReview.getText().toString().trim();
             int rating = (int) ratingBar.getRating();
             if (comment.isEmpty()) {
                 Toast.makeText(c, "Please add a review", Toast.LENGTH_SHORT).show();
+                btnSubmitReview.setEnabled(true);
                 return;
             } else if(rating == 0){
                 Toast.makeText(c, "Please add a rating.", Toast.LENGTH_SHORT).show();
+                btnSubmitReview.setEnabled(true);
                 return;
             }
 
             String reviewId = reviewRef.push().getKey();
             if (reviewId == null) {
                 Toast.makeText(c, "Could not create review ID.", Toast.LENGTH_SHORT).show();
+                btnSubmitReview.setEnabled(true);
                 return;
             }
             Review review = new Review(
@@ -329,17 +323,47 @@ public class BookDetailActivity extends AppCompatActivity {
 
             reviewRef.child(reviewId).setValue(review).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    Toast.makeText(BookDetailActivity.this, "Review added!", Toast.LENGTH_SHORT).show();
-                    etReview.setText("");
-                    ratingBar.setRating(0);
+                    DatabaseReference reviewStatsRef = FirebaseDatabase.getInstance()
+                            .getReference("users")
+                            .child(uid)
+                            .child("stats")
+                            .child("reviews");
+                    reviewStatsRef.setValue(ServerValue.increment(1)).addOnCompleteListener(t2 -> {
+                        if (!t2.isSuccessful()) {
+                            btnSubmitReview.setEnabled(true);
+                            Toast.makeText(BookDetailActivity.this, R.string.toast_review_stats_failed, Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        FirebaseDatabase.getInstance().getReference("users").child(uid).child("stats").get()
+                                .addOnCompleteListener(t3 -> {
+                                    Runnable after = () -> {
+                                        if (isFinishing()) {
+                                            return;
+                                        }
+                                        Toast.makeText(BookDetailActivity.this, R.string.toast_review_added, Toast.LENGTH_SHORT).show();
+                                        etReview.setText("");
+                                        ratingBar.setRating(0);
+                                        btnSubmitReview.setEnabled(true);
+                                    };
+                                    if (!isFinishing() && t3.isSuccessful() && t3.getResult() != null) {
+                                        BadgeMilestoneHelper.runAfterStatsCelebrations(
+                                                BookDetailActivity.this, getApplicationContext(), uid, t3.getResult(), after);
+                                    } else {
+                                        after.run();
+                                    }
+                                });
+                    });
+                } else {
+                    btnSubmitReview.setEnabled(true);
+                    Toast.makeText(BookDetailActivity.this, R.string.toast_review_failed, Toast.LENGTH_SHORT).show();
                 }
             });
         });
 
         ArrayList<Review> reviewList = new ArrayList<>();
-        ReviewAdapter adapter = new ReviewAdapter(this, reviewList);
+        reviewAdapter = new ReviewAdapter(this, reviewList);
         rvReviews.setLayoutManager(new LinearLayoutManager(this));
-        rvReviews.setAdapter(adapter);
+        rvReviews.setAdapter(reviewAdapter);
 
         reviewRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -353,9 +377,9 @@ public class BookDetailActivity extends AppCompatActivity {
                     }
                 }
                 if (previousSize > 0) {
-                    adapter.notifyItemRangeRemoved(0, previousSize);
+                    reviewAdapter.notifyItemRangeRemoved(0, previousSize);
                 }
-                adapter.notifyItemRangeInserted(0, reviewList.size());
+                reviewAdapter.notifyItemRangeInserted(0, reviewList.size());
                 if (reviewList.isEmpty()) {
                     tvNoReviews.setVisibility(View.VISIBLE);
                     rvReviews.setVisibility(View.GONE);
@@ -370,6 +394,78 @@ public class BookDetailActivity extends AppCompatActivity {
                 Toast.makeText(BookDetailActivity.this, "Failed to load reviews", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (reviewAdapter != null) {
+            reviewAdapter.detachUserProfileListeners();
+        }
+        super.onDestroy();
+    }
+
+
+    private void openBookPreview() {
+        String link = firstNonEmptyTrimmed(
+                getIntent().getStringExtra("previewLink"),
+                getIntent().getStringExtra("readerLink"));
+        if (link != null) {
+            if (link.startsWith("http://")) {
+                link = link.replace("http://", "https://");
+            }
+            openExternalPreviewUrl(link);
+            return;
+        }
+        String id = getIntent().getStringExtra("bookId");
+        if (id != null && !id.trim().isEmpty()) {
+            String url = "https://books.google.com/books?id=" + id.trim()
+                    + "&printsec=frontcover&dq&hl=en&source=gbs_api";
+            openExternalPreviewUrl(url);
+        } else {
+            Toast.makeText(c, "Preview not available", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Nullable
+    private static String firstNonEmptyTrimmed(@Nullable String a, @Nullable String b) {
+        if (a != null) {
+            String t = a.trim();
+            if (!t.isEmpty()) {
+                return t;
+            }
+        }
+        if (b != null) {
+            String t = b.trim();
+            if (!t.isEmpty()) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    private void openExternalPreviewUrl(@NonNull String url) {
+        Uri uri = Uri.parse(url);
+        try {
+            CustomTabColorSchemeParams scheme = new CustomTabColorSchemeParams.Builder().build();
+            CustomTabsIntent tabsIntent = new CustomTabsIntent.Builder()
+                    .setDefaultColorSchemeParams(scheme)
+                    .setShowTitle(true)
+                    .setShareState(CustomTabsIntent.SHARE_STATE_OFF)
+                    .build();
+            tabsIntent.launchUrl(this, uri);
+        } catch (Exception e) {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(c, "Preview not available", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e2) {
+                Toast.makeText(c, "Preview not available", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void bindBookDetails(String title, String image, String author, String description, String category) {

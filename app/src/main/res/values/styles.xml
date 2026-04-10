@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- make the profileImg 100% circular  -->
     <style name="bookImage">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">6%</item>
@@ -24,5 +23,13 @@
     <style name="profileImage">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="BookshellBrandLightBlue">
+        <item name="android:textColor">@color/lightBlue</item>
+        <item name="android:shadowColor">#66BEEAF8</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">2.5</item>
     </style>
 </resources>

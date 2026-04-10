@@ -218,7 +218,22 @@ public class SettingsActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.toast_password_fields_required, Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (newPass.length() < 6) {
+            if (newPass.length() < 8) {
+                Toast.makeText(this, R.string.toast_password_too_short, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            boolean hasUpper = false, hasLower = false, hasDigit = false;
+            for (int i = 0; i < newPass.length(); i++) {
+                char ch = newPass.charAt(i);
+                if (Character.isUpperCase(ch)) {
+                    hasUpper = true;
+                } else if (Character.isLowerCase(ch)) {
+                    hasLower = true;
+                } else if (Character.isDigit(ch)) {
+                    hasDigit = true;
+                }
+            }
+            if (!hasUpper || !hasLower || !hasDigit) {
                 Toast.makeText(this, R.string.toast_password_too_short, Toast.LENGTH_SHORT).show();
                 return;
             }

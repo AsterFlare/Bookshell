@@ -40,6 +40,22 @@ public final class BadgeMilestoneHelper {
                                             @NonNull Context appContext,
                                             @NonNull String uid,
                                             @Nullable DataSnapshot statsSnapshot) {
+        processStatsSnapshot(activity, appContext, uid, statsSnapshot, null);
+    }
+
+    public static void runAfterStatsCelebrations(@Nullable Activity activity,
+                                                 @NonNull Context appContext,
+                                                 @NonNull String uid,
+                                                 @Nullable DataSnapshot statsSnapshot,
+                                                 @NonNull Runnable onComplete) {
+        processStatsSnapshot(activity, appContext, uid, statsSnapshot, onComplete);
+    }
+
+    public static void processStatsSnapshot(@Nullable Activity activity,
+                                            @NonNull Context appContext,
+                                            @NonNull String uid,
+                                            @Nullable DataSnapshot statsSnapshot,
+                                            @Nullable Runnable onComplete) {
         long completed = 0;
         long reviews = 0;
         long readingLists = 0;
@@ -57,15 +73,13 @@ public final class BadgeMilestoneHelper {
         String keyBits = KEY_BITS_PREFIX + uid;
         String keyTier = KEY_TIER_PREFIX + uid;
 
-        if (!prefs.contains(keyBits)) {
-            prefs.edit().putInt(keyBits, newBits).putInt(keyTier, newTier).apply();
-            return;
-        }
-
+        // Always compare against stored (or implicit 0) baseline so first-time unlocks
+        // (e.g. Tidal Curator on first shared list) still run the celebration chain.
         int oldBits = prefs.getInt(keyBits, 0);
         int oldTier = prefs.getInt(keyTier, 0);
 
         if (oldBits == newBits && oldTier == newTier) {
+            completeDeferringToPostedUi(onComplete);
             return;
         }
 
@@ -82,20 +96,41 @@ public final class BadgeMilestoneHelper {
         prefs.edit().putInt(keyBits, newBits).putInt(keyTier, newTier).apply();
 
         if (newBadgeIndices.isEmpty() && !levelUp) {
+            complete(onComplete);
             return;
         }
 
         if (activity == null || activity.isFinishing()) {
+            complete(onComplete);
             return;
         }
 
         Handler main = new Handler(Looper.getMainLooper());
         main.post(() -> {
             if (activity.isFinishing()) {
+                complete(onComplete);
                 return;
             }
-            runCelebrationChain(activity, newBadgeIndices, levelUp, oldTier, newTier);
+            runCelebrationChain(activity, newBadgeIndices, levelUp, oldTier, newTier, onComplete);
         });
+    }
+
+    private static void complete(@Nullable Runnable onComplete) {
+        if (onComplete == null) {
+            return;
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            onComplete.run();
+        } else {
+            new Handler(Looper.getMainLooper()).post(onComplete);
+        }
+    }
+
+    private static void completeDeferringToPostedUi(@Nullable Runnable onComplete) {
+        if (onComplete == null) {
+            return;
+        }
+        new Handler(Looper.getMainLooper()).post(onComplete);
     }
 
     private static int badgeMaskFromStats(long completed, long reviews, long readingLists) {
@@ -112,7 +147,7 @@ public final class BadgeMilestoneHelper {
         if (completed >= 100) {
             mask |= 8;
         }
-        if (reviews >= 5) {
+        if (reviews >= 1) {
             mask |= 16;
         }
         if (readingLists >= 1) {
@@ -125,10 +160,13 @@ public final class BadgeMilestoneHelper {
                                             List<Integer> badgeIndices,
                                             boolean levelUp,
                                             int oldTier,
-                                            int newTier) {
+                                            int newTier,
+                                            @Nullable Runnable onComplete) {
         Runnable afterBadges = () -> {
             if (levelUp) {
-                showLevelUpDialog(activity, oldTier, newTier);
+                showLevelUpDialog(activity, oldTier, newTier, onComplete);
+            } else {
+                complete(onComplete);
             }
         };
 
@@ -197,7 +235,8 @@ public final class BadgeMilestoneHelper {
         dialog.show();
     }
 
-    private static void showLevelUpDialog(Activity activity, int oldTier, int newTier) {
+    private static void showLevelUpDialog(Activity activity, int oldTier, int newTier,
+                                          @Nullable Runnable onComplete) {
         View root = LayoutInflater.from(activity).inflate(R.layout.dialog_level_up, null, false);
         ShapeableImageView ivAvatar = root.findViewById(R.id.dialogLevelAvatar);
         TextView tvLabel = root.findViewById(R.id.dialogLevelLabel);
@@ -257,6 +296,7 @@ public final class BadgeMilestoneHelper {
         progressAnim.start();
 
         btn.setOnClickListener(v -> dialog.dismiss());
+        dialog.setOnDismissListener(d -> complete(onComplete));
         dialog.show();
     }
 

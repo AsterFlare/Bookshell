@@ -19,9 +19,9 @@
             android:layout_height="wrap_content"
             android:text="@string/title_confirm_logout"
             android:textAlignment="center"
-            android:textColor="@color/lightBlue"
             android:textSize="24sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            style="@style/BookshellBrandLightBlue" />
 
         <TextView
             android:layout_width="match_parent"
@@ -49,7 +49,7 @@
 
             <Button
                 android:id="@+id/btnConfirmLogout"
-                style="?android:attr/buttonBarButtonStyle"
+                style="@style/Widget.Bookshell.Button.Gold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/lightBrown"
