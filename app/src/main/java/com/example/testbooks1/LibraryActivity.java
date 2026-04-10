@@ -198,6 +198,12 @@ public class LibraryActivity extends AppCompatActivity {
             if (id == R.id.nav_home) {
                 startActivity(new Intent(c, MainActivity.class));
                 return true;
+            } else if (id == R.id.nav_search) {
+                startActivity(new Intent(c, SearchActivity.class));
+                return true;
+            } else if (id == R.id.nav_community) {
+                startActivity(new Intent(c, CommunityActivity.class));
+                return true;
             } else if (id == R.id.nav_library) {
                 //startActivity(new Intent(c, LibraryActivity.class));
                 return true;

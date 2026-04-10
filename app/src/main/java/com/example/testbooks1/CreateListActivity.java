@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,8 +28,6 @@ import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.CommunityBook;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,6 +41,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class CreateListActivity extends AppCompatActivity {
+    private static final String TAG = "CreateListActivity";
 
     EditText etTitle, etDescription;
     RecyclerView rvUserBooks;
@@ -85,10 +85,22 @@ public class CreateListActivity extends AppCompatActivity {
         bottomNav.setSelectedItemId(R.id.nav_home);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_search) startActivity(new Intent(c, SearchActivity.class));
-            else if (id == R.id.nav_community) startActivity(new Intent(c, CommunityActivity.class));
-            else if (id == R.id.nav_library) startActivity(new Intent(c, LibraryActivity.class));
-            else if (id == R.id.nav_profile) startActivity(new Intent(c, ProfileActivity.class));
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(c, MainActivity.class));
+                return true;
+            } else if (id == R.id.nav_search) {
+                startActivity(new Intent(c, SearchActivity.class));
+                return true;
+            } else if (id == R.id.nav_community) {
+                startActivity(new Intent(c, CommunityActivity.class));
+                return true;
+            } else if (id == R.id.nav_library) {
+                startActivity(new Intent(c, LibraryActivity.class));
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(c, ProfileActivity.class));
+                return true;
+            }
             return false;
         });
 
@@ -99,7 +111,7 @@ public class CreateListActivity extends AppCompatActivity {
         userBooksAdapter = new UserBooksAdapter(this, userBooks, selectedBookIds, (book, isSelected) -> {
             if (isSelected) selectedBooks.add(book);
             else removeBookFromSelected(book.bookId);
-            userBooksAdapter.notifyDataSetChanged();
+            userBooksAdapter.notifyItemRangeChanged(0, userBooks.size());
         });
 
         rvUserBooks.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -126,6 +138,7 @@ public class CreateListActivity extends AppCompatActivity {
         userBooksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int previousSize = userBooks.size();
                 userBooks.clear();
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     CommunityBook book = new CommunityBook();
@@ -137,7 +150,12 @@ public class CreateListActivity extends AppCompatActivity {
                     book.description = ds.child("description").getValue(String.class);
                     if (book.title != null) userBooks.add(book);
                 }
-                userBooksAdapter.notifyDataSetChanged();
+                if (previousSize > 0) {
+                    userBooksAdapter.notifyItemRangeRemoved(0, previousSize);
+                }
+                if (!userBooks.isEmpty()) {
+                    userBooksAdapter.notifyItemRangeInserted(0, userBooks.size());
+                }
             }
 
             @Override
@@ -165,6 +183,10 @@ public class CreateListActivity extends AppCompatActivity {
         }
 
         String listId = communityRef.child(uid).push().getKey();
+        if (listId == null) {
+            Toast.makeText(this, "Unable to create list ID.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         DatabaseReference listRef = communityRef.child(uid).child(listId);
         listRef.child("title").setValue(title);
         listRef.child("description").setValue(description);
@@ -197,6 +219,7 @@ public class CreateListActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void selectCoverImage() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
@@ -228,7 +251,7 @@ public class CreateListActivity extends AppCompatActivity {
             }
             coverImageBase64 = Base64.encodeToString(imageBytes, Base64.DEFAULT);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed converting selected image", e);
             Toast.makeText(this, "Failed to process image", Toast.LENGTH_SHORT).show();
         }
     }

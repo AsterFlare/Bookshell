@@ -6,10 +6,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.InputType;
+import android.util.Log;
 import android.util.Base64;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -21,19 +20,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.example.testbooks1.Adapter.SelectedBooksAdapter;
 import com.example.testbooks1.Adapter.UserBooksAdapter;
 import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.CommunityBook;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -47,10 +41,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class AddToListActivity extends AppCompatActivity {
+    private static final String TAG = "AddToListActivity";
     EditText etTitle, etDescription;
-    RecyclerView rvSelectedBooks, rvUserBooks;
+    RecyclerView rvUserBooks;
     ArrayList<CommunityBook> selectedBooks, userBooks;
-    SelectedBooksAdapter adapter;
     UserBooksAdapter userBooksAdapter;
     HashSet<String> selectedBookIds;
     CommunityBook firstBookFromIntent;
@@ -58,7 +52,6 @@ public class AddToListActivity extends AppCompatActivity {
     DatabaseReference communityRef;
     ImageView btnBack;
     private ImageView ivCoverImage;
-    private Uri coverImageUri;
     private String coverImageBase64;
     BottomNavigationView bottomNav;
     private static final int PICK_IMAGE_REQUEST = 101;
@@ -92,7 +85,7 @@ public class AddToListActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                //startActivity(new Intent(c, HomeActivity.class));
+                startActivity(new Intent(c, MainActivity.class));
                 return true;
             } else if (id == R.id.nav_search) {
                 startActivity(new Intent(c, SearchActivity.class));
@@ -131,7 +124,7 @@ public class AddToListActivity extends AppCompatActivity {
                     } else {
                         removeBookFromSelected(book.bookId);
                     }
-                    userBooksAdapter.notifyDataSetChanged();
+                    userBooksAdapter.notifyItemRangeChanged(0, userBooks.size());
                 }
         );
 
@@ -181,7 +174,7 @@ public class AddToListActivity extends AppCompatActivity {
 
         loadUserBooks();
         btnShare.setOnClickListener(v -> saveCommunityList());
-        btnBack.setOnClickListener(v -> { finish(); });
+        btnBack.setOnClickListener(v -> finish());
         //onBackPressed();
     }
 
@@ -214,7 +207,7 @@ public class AddToListActivity extends AppCompatActivity {
                         userBooks.add(book);
                     }
                 }
-                userBooksAdapter.notifyDataSetChanged();
+                userBooksAdapter.notifyItemRangeInserted(0, userBooks.size());
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
@@ -278,6 +271,10 @@ public class AddToListActivity extends AppCompatActivity {
         }
 
         String listId = communityRef.child(uid).push().getKey();
+        if (listId == null) {
+            Toast.makeText(this, "Unable to create list ID.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         DatabaseReference listRef = communityRef.child(uid).child(listId);
         listRef.child("title").setValue(title);
         listRef.child("description").setValue(description);
@@ -313,6 +310,7 @@ public class AddToListActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void selectCoverImage() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
@@ -324,7 +322,7 @@ public class AddToListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == 101 && resultCode == RESULT_OK && data != null) {
-            coverImageUri = data.getData();
+            Uri coverImageUri = data.getData();
             ivCoverImage.setImageURI(coverImageUri);
             findViewById(R.id.tvCoverHint).setVisibility(View.GONE);
 
@@ -348,7 +346,7 @@ public class AddToListActivity extends AppCompatActivity {
             coverImageBase64 = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed converting selected image", e);
             Toast.makeText(this, "Failed to process image", Toast.LENGTH_SHORT).show();
         }
     }

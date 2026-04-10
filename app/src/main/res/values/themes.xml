@@ -6,4 +6,16 @@
     </style>
 
     <style name="Theme.TestBooks1" parent="Base.Theme.TestBooks1" />
+
+    <style name="ShapeAppearance.Rounded" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Rounded12" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.RoundedCircle" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>

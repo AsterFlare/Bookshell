@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -20,8 +21,6 @@ import com.example.testbooks1.Model.Review;
 import com.example.testbooks1.Model.UserBook;
 import com.example.testbooks1.Model.UserManager;
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,7 +30,6 @@ import com.google.firebase.database.ValueEventListener;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -92,8 +90,6 @@ public class BookDetailActivity extends AppCompatActivity {
         btnCompleted = findViewById(R.id.btnCompleted);
 
         communityRef = FirebaseDatabase.getInstance().getReference("communityLists");
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
         ratingBar = findViewById(R.id.ratingBar);
         etReview = findViewById(R.id.etReview);
 
@@ -117,6 +113,11 @@ public class BookDetailActivity extends AppCompatActivity {
         tvAngryCount = findViewById(R.id.tvAngryCount);
 
         bookId = getIntent().getStringExtra("bookId");
+        if (bookId == null || bookId.trim().isEmpty()) {
+            Toast.makeText(this, "Missing book ID.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
         loadBookStatus(btnWantToRead, btnCurrentlyReading, btnCompleted);
 
         reviewRef = FirebaseDatabase.getInstance()
@@ -129,15 +130,10 @@ public class BookDetailActivity extends AppCompatActivity {
         String author = getIntent().getStringExtra("author");
         String description = getIntent().getStringExtra("description");
         String category = getIntent().getStringExtra("category");
-
-        tvTitle.setText(title);
-        tvAuthor.setText(author != null ? author : "Unknown");
-        tvDescription.setText(description != null ? description : "No description available");
-        tvCategory.setText(category);
-
-        Glide.with(this)
-                .load(image)
-                .into(ivBook);
+        bindBookDetails(title, image, author, description, category);
+        if (title == null || title.trim().isEmpty() || image == null || image.trim().isEmpty()) {
+            loadBookDetailsFromUserBooks();
+        }
 
         reactionsRef = FirebaseDatabase.getInstance()
                 .getReference("book_reactions")
@@ -147,7 +143,7 @@ public class BookDetailActivity extends AppCompatActivity {
         /*
         reactionsRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 likeCount = snapshot.child("like").getValue(Integer.class) != null ? snapshot.child("like").getValue(Integer.class) : 0;
                 fireCount = snapshot.child("fire").getValue(Integer.class) != null ? snapshot.child("fire").getValue(Integer.class) : 0;
                 heartCount = snapshot.child("heart").getValue(Integer.class) != null ? snapshot.child("heart").getValue(Integer.class) : 0;
@@ -169,7 +165,7 @@ public class BookDetailActivity extends AppCompatActivity {
         */
         reactionsRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 likeCount = snapshot.child("like").getChildrenCount() > 0 ? (int) snapshot.child("like").getChildrenCount() : 0;
                 fireCount = snapshot.child("fire").getChildrenCount() > 0 ? (int) snapshot.child("fire").getChildrenCount() : 0;
                 heartCount = snapshot.child("heart").getChildrenCount() > 0 ? (int) snapshot.child("heart").getChildrenCount() : 0;
@@ -183,12 +179,10 @@ public class BookDetailActivity extends AppCompatActivity {
                 tvAngryCount.setText(String.valueOf(angryCount));
             }
             @Override
-            public void onCancelled(DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-        btnBack.setOnClickListener(v -> {
-            startActivity(new Intent(c, MainActivity.class));
-        });
+        btnBack.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         btnCreateList.setOnClickListener(v -> {
             Intent intent = new Intent(c, AddToListActivity.class);
@@ -211,7 +205,7 @@ public class BookDetailActivity extends AppCompatActivity {
 
             listsRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onDataChange(DataSnapshot snapshot) {
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (!snapshot.exists()) {
                         Toast.makeText(c, "No current existing list.", Toast.LENGTH_SHORT).show();
                         return;
@@ -258,7 +252,7 @@ public class BookDetailActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onCancelled(DatabaseError error) {
+                public void onCancelled(@NonNull DatabaseError error) {
                     Toast.makeText(c, "Failed to load lists", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -321,6 +315,10 @@ public class BookDetailActivity extends AppCompatActivity {
             }
 
             String reviewId = reviewRef.push().getKey();
+            if (reviewId == null) {
+                Toast.makeText(c, "Could not create review ID.", Toast.LENGTH_SHORT).show();
+                return;
+            }
             Review review = new Review(
                     uid,
                     fullName,
@@ -345,7 +343,8 @@ public class BookDetailActivity extends AppCompatActivity {
 
         reviewRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int previousSize = reviewList.size();
                 reviewList.clear();
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     Review r = ds.getValue(Review.class);
@@ -353,7 +352,10 @@ public class BookDetailActivity extends AppCompatActivity {
                         reviewList.add(r);
                     }
                 }
-                adapter.notifyDataSetChanged();
+                if (previousSize > 0) {
+                    adapter.notifyItemRangeRemoved(0, previousSize);
+                }
+                adapter.notifyItemRangeInserted(0, reviewList.size());
                 if (reviewList.isEmpty()) {
                     tvNoReviews.setVisibility(View.VISIBLE);
                     rvReviews.setVisibility(View.GONE);
@@ -364,10 +366,59 @@ public class BookDetailActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(BookDetailActivity.this, "Failed to load reviews", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void bindBookDetails(String title, String image, String author, String description, String category) {
+        tvTitle.setText(title != null ? title : "");
+        tvAuthor.setText(author != null ? author : "Unknown");
+        tvDescription.setText(description != null ? description : "No description available");
+        tvCategory.setText(category != null ? category : "Unknown");
+
+        String safeImage = image;
+        if (safeImage != null && safeImage.startsWith("http://")) {
+            safeImage = safeImage.replace("http://", "https://");
+        }
+        if (safeImage == null || safeImage.trim().isEmpty()) {
+            ivBook.setImageResource(R.drawable.sample_book);
+        } else {
+            Glide.with(this).load(safeImage).into(ivBook);
+        }
+    }
+
+    private void loadBookDetailsFromUserBooks() {
+        String uid = AuthManager.getUid();
+        if (uid == null || bookId == null || bookId.trim().isEmpty()) {
+            return;
+        }
+        FirebaseDatabase.getInstance()
+                .getReference("user_books")
+                .child(uid)
+                .child(bookId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!snapshot.exists()) {
+                            return;
+                        }
+                        String title = snapshot.child("title").getValue(String.class);
+                        String image = snapshot.child("imageUrl").getValue(String.class);
+                        if (image == null || image.isEmpty()) {
+                            image = snapshot.child("coverUrl").getValue(String.class);
+                        }
+                        String author = snapshot.child("author").getValue(String.class);
+                        String description = snapshot.child("description").getValue(String.class);
+                        String category = snapshot.child("category").getValue(String.class);
+                        bindBookDetails(title, image, author, description, category);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                    }
+                });
     }
 
     private void addBookToUserBooks(String status) {
@@ -380,6 +431,10 @@ public class BookDetailActivity extends AppCompatActivity {
                 .child(uid);
 
         String bookId = getIntent().getStringExtra("bookId");
+        if (bookId == null || bookId.trim().isEmpty()) {
+            Toast.makeText(this, "Missing book ID.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String imageUrl = getIntent().getStringExtra("image");
         if (imageUrl != null && imageUrl.startsWith("http://")) {
             imageUrl = imageUrl.replace("http://", "https://");
@@ -407,7 +462,10 @@ public class BookDetailActivity extends AppCompatActivity {
                     userRef.child("completed").get().addOnSuccessListener(snapshot -> {
                         int completed = 0;
                         if (snapshot.getValue() != null) {
-                            completed = snapshot.getValue(Integer.class);
+                            Integer completedValue = snapshot.getValue(Integer.class);
+                            if (completedValue != null) {
+                                completed = completedValue;
+                            }
                         }
                         userRef.child("completed").setValue(completed + 1);
                     });
@@ -415,7 +473,10 @@ public class BookDetailActivity extends AppCompatActivity {
                     userRef.child("reading").get().addOnSuccessListener(snapshot -> {
                         int reading = 0;
                         if (snapshot.getValue() != null) {
-                            reading = snapshot.getValue(Integer.class);
+                            Integer readingValue = snapshot.getValue(Integer.class);
+                            if (readingValue != null) {
+                                reading = readingValue;
+                            }
                         }
                         userRef.child("reading").setValue(reading + 1);
                     });
@@ -445,13 +506,7 @@ public class BookDetailActivity extends AppCompatActivity {
         reactionRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 if (!task.getResult().exists()) {
-                    reactionRef.setValue(true).addOnCompleteListener(t -> {
-                        if (t.isSuccessful()) {
-                            //Toast.makeText(c, "Reaction added!", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    //Toast.makeText(c, "You already reacted!", Toast.LENGTH_SHORT).show();
+                    reactionRef.setValue(true);
                 }
             }
         });
@@ -479,7 +534,7 @@ public class BookDetailActivity extends AppCompatActivity {
 
         userBooksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     String status = snapshot.child("status").getValue(String.class);
 
@@ -499,7 +554,7 @@ public class BookDetailActivity extends AppCompatActivity {
                 }
             }
             @Override
-            public void onCancelled(DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
@@ -508,6 +563,10 @@ public class BookDetailActivity extends AppCompatActivity {
         if (uid == null) return;
 
         String bookId = getIntent().getStringExtra("bookId");
+        if (bookId == null || bookId.trim().isEmpty()) {
+            Toast.makeText(this, "Missing book ID.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String imageUrl = getIntent().getStringExtra("image");
         if (imageUrl != null && imageUrl.startsWith("http://")) {
             imageUrl = imageUrl.replace("http://", "https://");
