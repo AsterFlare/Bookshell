@@ -3,16 +3,17 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import android.annotation.SuppressLint;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@SuppressLint("NotifyDataSetChanged")
 public class MainActivity extends AppCompatActivity {
 
     private static final String VOLLEY_TAG_BOOKS_TODAY = "books_today";
@@ -87,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
     }
@@ -115,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                 .equalTo("Currently Reading")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
                         Book latestBook = null;
                         long latestTimestamp = 0;
 
@@ -148,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onCancelled(DatabaseError error) {
+                    public void onCancelled(@NonNull DatabaseError error) {
                     }
                 });
     }
@@ -309,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
                         adapter.notifyDataSetChanged();
                         recommendedSection.setVisibility(View.VISIBLE);
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e("MainActivity", "books_today JSON", e);
                         if (!alreadyFallback) {
                             callBooksInternal("bestseller", true);
                             return;
@@ -338,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.e("VOLLEY_ERROR", "Status Code: " + statusCode);
                         Log.e("VOLLEY_ERROR", "Response: " + responseData);
                     } else {
-                        Log.e("VOLLEY_ERROR", "Error: " + error.toString());
+                        Log.e("VOLLEY_ERROR", "Error: " + error);
                     }
                 }
         );
@@ -424,7 +426,7 @@ public class MainActivity extends AppCompatActivity {
                         recommendedAdapter.notifyDataSetChanged();
 
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e("MainActivity", "books_recommended JSON", e);
                     }
                 },
                 error -> {
@@ -435,7 +437,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.e("VOLLEY_ERROR", "Status Code: " + statusCode);
                         Log.e("VOLLEY_ERROR", "Response: " + responseData);
                     } else {
-                        Log.e("VOLLEY_ERROR", "Error: " + error.toString());
+                        Log.e("VOLLEY_ERROR", "Error: " + error);
                     }
                 }
         );
@@ -453,21 +455,22 @@ public class MainActivity extends AppCompatActivity {
                 .child(uid);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 HashMap<String, Integer> categoryCount = new HashMap<>();
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     String category = ds.child("category").getValue(String.class);
                     if (category != null && !category.equals("Unknown")) {
-                        categoryCount.put(category,
-                                categoryCount.getOrDefault(category, 0) + 1);
+                        categoryCount.merge(category, 1, Integer::sum);
                     }
                 }
                 String topCategory = null;
                 int max = 0;
 
                 for (String cat : categoryCount.keySet()) {
-                    if (categoryCount.get(cat) > max) {
-                        max = categoryCount.get(cat);
+                    Integer v = categoryCount.get(cat);
+                    int count = v != null ? v : 0;
+                    if (count > max) {
+                        max = count;
                         topCategory = cat;
                     }
                 }
@@ -481,7 +484,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
                 callBooks("bestseller");
                 callRecommendedBooks("popular books");
             }

@@ -413,7 +413,7 @@
                             android:gravity="center"
                             android:text="@string/weekday_mon"
                             android:textColor="#B3FFFFFF"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -421,7 +421,7 @@
                             android:gravity="center"
                             android:text="@string/weekday_tue"
                             android:textColor="#B3FFFFFF"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -429,7 +429,7 @@
                             android:gravity="center"
                             android:text="@string/weekday_wed"
                             android:textColor="#B3FFFFFF"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -437,7 +437,7 @@
                             android:gravity="center"
                             android:text="@string/weekday_thu"
                             android:textColor="#B3FFFFFF"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -445,7 +445,7 @@
                             android:gravity="center"
                             android:text="@string/weekday_fri"
                             android:textColor="#B3FFFFFF"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -453,7 +453,7 @@
                             android:gravity="center"
                             android:text="@string/weekday_sat"
                             android:textColor="#B3FFFFFF"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -461,7 +461,7 @@
                             android:gravity="center"
                             android:text="@string/weekday_sun"
                             android:textColor="#B3FFFFFF"
-                            android:textSize="10sp" />
+                            android:textSize="11sp" />
                     </LinearLayout>
 
                     <TextView

@@ -26,11 +26,12 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Bookshell"
+            android:text="@string/brand_bookshell"
             android:textSize="26sp"
             android:fontFamily="@font/jakarta_extra_bold"
             android:layout_gravity="center"
             android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             style="@style/BookshellBrandLightBlue" />
     </LinearLayout>
 
@@ -48,13 +49,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Search"
+            android:hint="@string/search_action"
             android:background="@drawable/rounded_search"
             android:padding="10dp"
             android:inputType="text"
             android:fontFamily="@font/jakarta_light"
             android:drawableStart="@drawable/ic_search"
-            android:drawablePadding="8dp"/>
+            android:drawablePadding="8dp"
+            android:importantForAutofill="no"/>
     </LinearLayout>
 
     <LinearLayout

@@ -35,7 +35,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Create Account"
+                android:text="@string/registration_title"
                 android:textAlignment="center"
                 android:textSize="30sp"
                 android:textStyle="bold"
@@ -46,7 +46,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Dive into your next big adventure."
+                android:text="@string/registration_tagline"
                 android:textAlignment="center"
                 android:textSize="18sp"
                 android:fontFamily="@font/jakarta_light"
@@ -56,8 +56,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FIRST NAME"
-                android:textSize="15dp"
+                android:text="@string/label_first_name_caps"
+                android:textSize="15sp"
                 android:textColor="@color/darkGray"
                 android:fontFamily="@font/jakarta_bold"
                 android:layout_marginBottom="6dp" />
@@ -65,17 +65,18 @@
                 android:id="@+id/fNameET"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter first name"
+                android:hint="@string/hint_first_name"
                 android:inputType="text"
                 android:background="@drawable/rounded_input"
                 android:padding="14dp"
-                android:layout_marginBottom="14dp" />
+                android:layout_marginBottom="14dp"
+                android:importantForAutofill="no" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="LAST NAME"
-                android:textSize="15dp"
+                android:text="@string/label_last_name_caps"
+                android:textSize="15sp"
                 android:textColor="@color/darkGray"
                 android:fontFamily="@font/jakarta_bold"
                 android:layout_marginBottom="6dp" />
@@ -83,17 +84,18 @@
                 android:id="@+id/lNameET"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter last name"
+                android:hint="@string/hint_last_name"
                 android:inputType="text"
                 android:background="@drawable/rounded_input"
                 android:padding="14dp"
-                android:layout_marginBottom="14dp" />
+                android:layout_marginBottom="14dp"
+                android:importantForAutofill="no" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="EMAIL ADDRESS"
-                android:textSize="15dp"
+                android:text="@string/label_email_caps"
+                android:textSize="15sp"
                 android:textColor="@color/darkGray"
                 android:fontFamily="@font/jakarta_bold"
                 android:layout_marginBottom="6dp" />
@@ -101,19 +103,20 @@
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter email"
+                android:hint="@string/hint_enter_email_short"
                 android:inputType="textEmailAddress"
                 android:background="@drawable/rounded_input"
                 android:padding="14dp"
                 android:layout_marginBottom="14dp"
                 android:drawableStart="@drawable/ic_email"
-                android:drawablePadding="8dp" />
+                android:drawablePadding="8dp"
+                android:importantForAutofill="no" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="PASSWORD"
-                android:textSize="15dp"
+                android:text="@string/label_password_caps"
+                android:textSize="15sp"
                 android:textColor="@color/darkGray"
                 android:fontFamily="@font/jakarta_bold"
                 android:layout_marginBottom="6dp" />
@@ -121,20 +124,21 @@
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="••••••••"
+                android:hint="@string/password_masked_placeholder"
                 android:inputType="textPassword"
                 android:background="@drawable/rounded_input"
                 android:padding="14dp"
                 android:layout_marginBottom="14dp"
                 android:drawableStart="@drawable/ic_lock"
-                android:drawablePadding="8dp" />
+                android:drawablePadding="8dp"
+                android:importantForAutofill="no" />
 
             <Button
                 android:id="@+id/registerBtn"
                 style="@style/Widget.Bookshell.Button.Gold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Sign Up"
+                android:text="@string/action_sign_up"
                 android:textSize="18sp"
                 android:fontFamily="@font/jakarta_bold"
                 android:paddingVertical="12dp"
@@ -149,16 +153,16 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Already have an account?"
+                    android:text="@string/already_have_account"
                     android:fontFamily="@font/jakarta_light"
                     android:textColor="@color/darkGray" />
                 <TextView
                     android:id="@+id/tvAlreadyRegistered"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Log In"
+                    android:text="@string/action_log_in"
                     android:textColor="@color/darkerBlue"
-                    android:layout_marginLeft="10dp"
+                    android:layout_marginStart="10dp"
                     android:fontFamily="@font/jakarta_bold"
                     android:clickable="true"
                     android:focusable="true" />

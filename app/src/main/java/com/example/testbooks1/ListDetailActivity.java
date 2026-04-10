@@ -8,7 +8,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.annotation.SuppressLint;
+
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -29,6 +32,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
+@SuppressLint("NotifyDataSetChanged")
 public class ListDetailActivity extends AppCompatActivity {
 
     RecyclerView recyclerView, recyclerComments;
@@ -113,6 +117,11 @@ public class ListDetailActivity extends AppCompatActivity {
         recyclerComments.setAdapter(commentAdapter);
 
         String listId = getIntent().getStringExtra("listId");
+        if (listId == null) {
+            Toast.makeText(this, "Missing listId!", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
         listRef = FirebaseDatabase.getInstance().getReference()
                 .child("communityLists")
                 .child(userId)
@@ -125,6 +134,9 @@ public class ListDetailActivity extends AppCompatActivity {
             String text = etComment.getText().toString().trim();
             if (!text.isEmpty() && uid != null) {
                 String commentId = listRef.child("comments").push().getKey();
+                if (commentId == null) {
+                    return;
+                }
 
                 // fetch full name
                 DatabaseReference userRef = FirebaseDatabase.getInstance().getReference()
@@ -133,7 +145,7 @@ public class ListDetailActivity extends AppCompatActivity {
 
                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String firstName = snapshot.child("firstName").getValue(String.class);
                         String lastName = snapshot.child("lastName").getValue(String.class);
                         String fullName = ((firstName != null ? firstName : "") + " "
@@ -159,13 +171,13 @@ public class ListDetailActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onCancelled(DatabaseError error) {
+                    public void onCancelled(@NonNull DatabaseError error) {
                         Toast.makeText(ListDetailActivity.this, "Failed to get user name", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
-        btnBack.setOnClickListener(v -> { finish(); });
+        btnBack.setOnClickListener(v -> finish());
     }
 
     @Override
@@ -187,7 +199,7 @@ public class ListDetailActivity extends AppCompatActivity {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
 
                     @Override
-                    public void onDataChange(DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
                         bookList.clear();
                         for (DataSnapshot bookSnap : snapshot.getChildren()) {
 
@@ -206,7 +218,7 @@ public class ListDetailActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onCancelled(DatabaseError error) {
+                    public void onCancelled(@NonNull DatabaseError error) {
                         Toast.makeText(c, "Failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -215,7 +227,7 @@ public class ListDetailActivity extends AppCompatActivity {
     private void loadComments() {
         listRef.child("comments").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 commentList.clear();
                 for (DataSnapshot snap : snapshot.getChildren()) {
                     Comment c = snap.getValue(Comment.class);
@@ -226,7 +238,7 @@ public class ListDetailActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 }

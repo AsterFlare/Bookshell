@@ -12,11 +12,7 @@ public final class GoogleBooksJson {
     private GoogleBooksJson() {}
 
     public static String urlWithBooksApiKey(String urlWithoutKey) {
-        String k = BOOKS_API_KEY;
-        if (k.trim().isEmpty()) {
-            return urlWithoutKey;
-        }
-        return urlWithoutKey + "&key=" + k.trim();
+        return urlWithoutKey + "&key=" + BOOKS_API_KEY.trim();
     }
 
     public static String pickDisplayCategory(JSONObject volumeInfo) {

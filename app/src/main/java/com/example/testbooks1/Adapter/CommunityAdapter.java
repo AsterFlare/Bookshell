@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressLint({"NotifyDataSetChanged", "RecyclerView"})
 public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.ViewHolder> {
     DatabaseReference db = FirebaseDatabase.getInstance().getReference();
 
@@ -73,13 +76,14 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @NonNull
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_community, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, @SuppressLint("RecyclerView") int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CommunityItem item = items.get(position);
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         String currentUserId = firebaseUser != null ? firebaseUser.getUid() : null;
@@ -104,7 +108,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
                 Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
                 holder.imgBook.setImageBitmap(bitmap);
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.w("CommunityAdapter", "cover decode", e);
                 Glide.with(context).load(item.firstBookImage).into(holder.imgBook);
             }
         } else {
@@ -123,12 +127,12 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
 
         listRef.child("reactionCount").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Integer count = snapshot.getValue(Integer.class);
                 holder.tvHeartCount.setText(String.valueOf(count != null ? count : 0));
             }
             @Override
-            public void onCancelled(DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
 
         holder.tvCommentCount.setText(String.valueOf(item.commentCount));
@@ -136,7 +140,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
         if (reactRef != null) {
             reactRef.addValueEventListener(new ValueEventListener() {
                 @Override
-                public void onDataChange(DataSnapshot snapshot) {
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         holder.btnHeart.setImageResource(R.drawable.ic_heart_filled);
                     } else {
@@ -144,7 +148,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
                     }
                 }
                 @Override
-                public void onCancelled(DatabaseError error) {}
+                public void onCancelled(@NonNull DatabaseError error) {}
             });
         } else {
             holder.btnHeart.setImageResource(R.drawable.ic_community_heart);
@@ -157,7 +161,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
             }
             reactRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onDataChange(DataSnapshot snapshot) {
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         reactRef.removeValue();
                         listRef.child("reactionCount").setValue(ServerValue.increment(-1));
@@ -167,7 +171,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
                     }
                 }
                 @Override
-                public void onCancelled(DatabaseError error) {}
+                public void onCancelled(@NonNull DatabaseError error) {}
             });
         });
 
@@ -243,7 +247,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
 
         ValueEventListener listener = new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String first = snapshot.child("firstName").getValue(String.class);
                 String last = snapshot.child("lastName").getValue(String.class);
                 String image = snapshot.child("profileImageUrl").getValue(String.class);
@@ -259,7 +263,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
             }
         };
         db.child("users").child(userId).addValueEventListener(listener);

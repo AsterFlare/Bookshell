@@ -10,6 +10,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.annotation.SuppressLint;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -33,6 +35,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressLint("NotifyDataSetChanged")
 public class SearchPageActivity extends AppCompatActivity {
 
     EditText etSearch;
@@ -78,7 +81,7 @@ public class SearchPageActivity extends AppCompatActivity {
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             String searchQuery = etSearch.getText().toString().trim();
             if (searchQuery.isEmpty()) {
-                Toast.makeText(c, "Please enter a search query.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(c, R.string.toast_enter_search_query, Toast.LENGTH_SHORT).show();
             } else {
                 progress.setVisibility(View.VISIBLE);
                 callBooks(searchQuery);
@@ -111,7 +114,7 @@ public class SearchPageActivity extends AppCompatActivity {
         String trimmed = queryInput != null ? queryInput.trim() : "";
         if (trimmed.isEmpty()) {
             progress.setVisibility(View.GONE);
-            tvNoResults.setText("No results found.");
+            tvNoResults.setText(R.string.search_no_results);
             tvNoResults.setVisibility(View.VISIBLE);
             rvBooks.setVisibility(View.GONE);
             return;
@@ -134,7 +137,7 @@ public class SearchPageActivity extends AppCompatActivity {
                         progress.setVisibility(View.GONE);
 
                         if (!response.has("items")) {
-                            tvNoResults.setText("No results found.");
+                            tvNoResults.setText(R.string.search_no_results);
                             tvNoResults.setVisibility(View.VISIBLE);
                             rvBooks.setVisibility(View.GONE);
                             return;
@@ -186,7 +189,7 @@ public class SearchPageActivity extends AppCompatActivity {
 
                         adapter.notifyDataSetChanged();
                         if (bookList.isEmpty()) {
-                            tvNoResults.setText("No results found.");
+                            tvNoResults.setText(R.string.search_no_results);
                             tvNoResults.setVisibility(View.VISIBLE);
                             rvBooks.setVisibility(View.GONE);
                         } else {
@@ -196,7 +199,7 @@ public class SearchPageActivity extends AppCompatActivity {
                     } catch (JSONException e) {
                         Log.e("SearchPage", "parse error", e);
                         progress.setVisibility(View.GONE);
-                        tvNoResults.setText("No results found.");
+                        tvNoResults.setText(R.string.search_no_results);
                         tvNoResults.setVisibility(View.VISIBLE);
                         rvBooks.setVisibility(View.GONE);
                     }
@@ -204,7 +207,7 @@ public class SearchPageActivity extends AppCompatActivity {
                 //error -> Toast.makeText(c, error.toString(), Toast.LENGTH_SHORT).show()
                 error -> {
                     progress.setVisibility(View.GONE);
-                    tvNoResults.setText("No results found.");
+                    tvNoResults.setText(R.string.search_no_results);
                     tvNoResults.setVisibility(View.VISIBLE);
                     rvBooks.setVisibility(View.GONE);
 
@@ -215,7 +218,7 @@ public class SearchPageActivity extends AppCompatActivity {
                         Log.e("VOLLEY_ERROR", "Status Code: " + statusCode);
                         Log.e("VOLLEY_ERROR", "Response: " + responseData);
                     } else {
-                        Log.e("VOLLEY_ERROR", "Error: " + error.toString());
+                        Log.e("VOLLEY_ERROR", "Error: " + error);
                     }
                 }
         );

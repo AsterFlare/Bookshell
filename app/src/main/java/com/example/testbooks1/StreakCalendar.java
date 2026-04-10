@@ -6,8 +6,10 @@ import androidx.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Date;
 import java.util.TimeZone;
 
+@SuppressWarnings("unused")
 public final class StreakCalendar {
 
     public static final String ZONE_ID = "Asia/Manila";
@@ -39,8 +41,13 @@ public final class StreakCalendar {
             SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.US);
             fmt.setLenient(false);
             fmt.setTimeZone(zone());
-            long lastMs = fmt.parse(lastDay).getTime();
-            long todayMs = fmt.parse(todayDay).getTime();
+            Date dLast = fmt.parse(lastDay);
+            Date dToday = fmt.parse(todayDay);
+            if (dLast == null || dToday == null) {
+                return Integer.MAX_VALUE;
+            }
+            long lastMs = dLast.getTime();
+            long todayMs = dToday.getTime();
             long days = (todayMs - lastMs) / (24L * 60L * 60L * 1000L);
             return (int) days;
         } catch (Exception e) {

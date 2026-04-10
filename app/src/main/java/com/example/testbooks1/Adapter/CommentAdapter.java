@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import android.annotation.SuppressLint;
+
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -22,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressLint("NotifyDataSetChanged")
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHolder> {
 
     Context context;
@@ -54,7 +58,8 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    @NonNull
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_comment, parent, false);
         return new ViewHolder(view);
     }
@@ -94,7 +99,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
 
         ValueEventListener listener = new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String first = snapshot.child("firstName").getValue(String.class);
                 String last = snapshot.child("lastName").getValue(String.class);
                 String image = snapshot.child("profileImageUrl").getValue(String.class);
@@ -110,7 +115,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
             }
         };
         usersRef.child(userId).addValueEventListener(listener);

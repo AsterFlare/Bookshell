@@ -7,7 +7,10 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import android.annotation.SuppressLint;
+
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -26,9 +29,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+@SuppressLint("NotifyDataSetChanged")
 public class CommunityActivity extends AppCompatActivity {
 
     ProgressBar progress;
@@ -108,7 +111,7 @@ public class CommunityActivity extends AppCompatActivity {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
         db.child("communityLists").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 communityList.clear();
                 adapter.notifyDataSetChanged();
 
@@ -143,13 +146,22 @@ public class CommunityActivity extends AppCompatActivity {
                         if (book != null) books.add(book);
                     }
 
-                    String firstBookImage = books.size() > 0 ? books.get(0).imageUrl : null;
+                    String firstBookImage = !books.isEmpty() ? books.get(0).imageUrl : null;
                     String userId = listSnap.getRef().getParent().getKey();
                     final String fUserId = userId;
+                    if (userId == null) {
+                        synchronized (loadedBuffer) {
+                            loadedCount[0]++;
+                            if (loadedCount[0] == totalLists) {
+                                sortAndShowCommunityFeed(loadedBuffer);
+                            }
+                        }
+                        continue;
+                    }
 
                     db.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot userData) {
+                        public void onDataChange(@NonNull DataSnapshot userData) {
                             String firstName = userData.child("firstName").getValue(String.class);
                             String lastName = userData.child("lastName").getValue(String.class);
                             String profileImageUrl = userData.child("profileImageUrl").getValue(String.class);
@@ -184,7 +196,7 @@ public class CommunityActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onCancelled(DatabaseError error) {
+                        public void onCancelled(@NonNull DatabaseError error) {
                             CommunityItem fallback = new CommunityItem();
                             fallback.userId = fUserId;
                             fallback.listId = listId;
@@ -212,14 +224,14 @@ public class CommunityActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
                 progress.setVisibility(View.GONE);
             }
         });
     }
 
     private void sortAndShowCommunityFeed(List<CommunityItem> buffer) {
-        Collections.sort(buffer, (a, b) -> {
+        buffer.sort((a, b) -> {
             int cmp = Long.compare(b.timestampMs, a.timestampMs);
             if (cmp != 0) {
                 return cmp;

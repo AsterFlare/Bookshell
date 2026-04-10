@@ -4,9 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -39,6 +41,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+@SuppressLint("NotifyDataSetChanged")
 public class EditListActivity extends AppCompatActivity {
 
     EditText etTitle, etDescription;
@@ -205,6 +208,7 @@ public class EditListActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void selectCoverImage() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
@@ -222,16 +226,18 @@ public class EditListActivity extends AppCompatActivity {
     }
 
     private void convertToBase64(Uri uri) {
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(uri);
+        try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
+            if (inputStream == null) {
+                Toast.makeText(c, "Failed to process image", Toast.LENGTH_SHORT).show();
+                return;
+            }
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             bitmap = Bitmap.createScaledBitmap(bitmap, 600, 400, true);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
             coverImageBase64 = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-            inputStream.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("EditListActivity", "convertToBase64", e);
             Toast.makeText(c, "Failed to process image", Toast.LENGTH_SHORT).show();
         }
     }

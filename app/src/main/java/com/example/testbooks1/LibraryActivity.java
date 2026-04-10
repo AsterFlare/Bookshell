@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -40,6 +42,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
 
+@SuppressLint("NotifyDataSetChanged")
 public class LibraryActivity extends AppCompatActivity {
 
     private static final String STREAK_ZONE_ID = "Asia/Manila";
@@ -47,7 +50,7 @@ public class LibraryActivity extends AppCompatActivity {
     BottomNavigationView bottomNav;
     private Context c;
 
-    private View currentlyReadingCard, currentlyReadingHeader, weeklyProgressCard;
+    private View currentlyReadingCard, currentlyReadingHeader;
     private MaterialButton btnAll, btnCurrentlyReadingTab;
     private ImageView ivCurrentBookCover;
     private TextView tvCurrentBookTitle, tvCurrentBookAuthor, tvCurrentBookDescription;
@@ -234,7 +237,7 @@ public class LibraryActivity extends AppCompatActivity {
 
     private void displayCurrentlyReading(CommunityBook book) {
         tvCurrentBookTitle.setText(book.title);
-        tvCurrentBookAuthor.setText("by " + book.author);
+        tvCurrentBookAuthor.setText(getString(R.string.author_by_line, book.author != null ? book.author : ""));
         tvCurrentBookDescription.setText(book.description);
 
         if (c != null && !isFinishing()) {

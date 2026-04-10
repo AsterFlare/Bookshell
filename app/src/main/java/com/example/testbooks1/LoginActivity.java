@@ -27,6 +27,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import androidx.annotation.NonNull;
+
 public class LoginActivity extends AppCompatActivity {
 
     EditText etEmail, etPassword;
@@ -83,38 +85,39 @@ public class LoginActivity extends AppCompatActivity {
                         .addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 String uid = AuthManager.getUid();
-                                //Toast.makeText(c, "Login successful.", Toast.LENGTH_SHORT).show();
-                                //startActivity(new Intent(c, MainActivity.class));
+                                if (uid == null) {
+                                    Toast.makeText(c, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
                                 DatabaseReference userRef = FirebaseDatabase.getInstance()
                                         .getReference("users")
                                         .child(uid);
 
                                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
-                                    public void onDataChange(DataSnapshot snapshot) {
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
                                         User user = snapshot.getValue(User.class);
                                         if (user != null) {
                                             UserManager.setUser(user);
                                         }
-                                        Toast.makeText(c, "Login successful.", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(c, R.string.toast_login_success, Toast.LENGTH_SHORT).show();
                                         MainActivity.openHome(c);
                                     }
                                     @Override
-                                    public void onCancelled(DatabaseError error) {
+                                    public void onCancelled(@NonNull DatabaseError error) {
                                         Toast.makeText(c, "Failed to load user data.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
 
                             } else {
-                                try {
-                                    throw task.getException();
-                                } catch (FirebaseAuthInvalidUserException e) {
+                                Exception ex = task.getException();
+                                if (ex instanceof FirebaseAuthInvalidUserException) {
                                     Toast.makeText(c, "No account found with this email.", Toast.LENGTH_SHORT).show();
-                                } catch (FirebaseAuthInvalidCredentialsException e) {
+                                } else if (ex instanceof FirebaseAuthInvalidCredentialsException) {
                                     Toast.makeText(c, "Incorrect credentials.", Toast.LENGTH_SHORT).show();
-                                } catch (FirebaseAuthException e) {
-                                    Toast.makeText(c, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                } catch (Exception e) {
+                                } else if (ex instanceof FirebaseAuthException) {
+                                    Toast.makeText(c, ex.getMessage() != null ? ex.getMessage() : "", Toast.LENGTH_SHORT).show();
+                                } else {
                                     Toast.makeText(c, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();
                                 }
                             }
@@ -122,12 +125,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        tvNotRegistered.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(c, RegistrationActivity.class);
-                startActivity(intent);
-            }
-        });
+        tvNotRegistered.setOnClickListener(v -> startActivity(new Intent(c, RegistrationActivity.class)));
     }
 }

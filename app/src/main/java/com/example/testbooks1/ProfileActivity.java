@@ -15,6 +15,8 @@ import android.widget.Toast;
 import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
+import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,10 +44,12 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+@SuppressLint("NotifyDataSetChanged")
 public class ProfileActivity extends AppCompatActivity {
 
     /** Calendar for streak, check-in, and weekly bars (Philippines). */
@@ -63,13 +67,11 @@ public class ProfileActivity extends AppCompatActivity {
     private BottomNavigationView bottomNav;
     private RecyclerView recyclerCurrentlyReading;
     private CurrentlyReadingAdapter currentlyReadingAdapter;
-    private RecyclerView recyclerProfileBadges;
     private ProfileBadgeAdapter profileBadgeAdapter;
     private final ArrayList<BadgeRules.BadgeRow> profileBadgeRows = new ArrayList<>();
 
     private Context context;
 
-    private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private String userId;
 
@@ -87,8 +89,8 @@ public class ProfileActivity extends AppCompatActivity {
 
         context = this;
 
-        mAuth = FirebaseAuth.getInstance();
-        FirebaseUser user = mAuth.getCurrentUser();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
         if (user == null) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -135,7 +137,7 @@ public class ProfileActivity extends AppCompatActivity {
         });
         recyclerCurrentlyReading.setAdapter(currentlyReadingAdapter);
 
-        recyclerProfileBadges = findViewById(R.id.recyclerProfileBadges);
+        RecyclerView recyclerProfileBadges = findViewById(R.id.recyclerProfileBadges);
         recyclerProfileBadges.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
         profileBadgeAdapter = new ProfileBadgeAdapter(profileBadgeRows);
         recyclerProfileBadges.setAdapter(profileBadgeAdapter);
@@ -225,10 +227,8 @@ public class ProfileActivity extends AppCompatActivity {
             } else if (id == R.id.nav_library) {
                 startActivity(new Intent(context, LibraryActivity.class));
                 return true;
-            } else if (id == R.id.nav_profile) {
-                return true;
             }
-            return false;
+            return id == R.id.nav_profile;
         });
     }
 
@@ -286,7 +286,7 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
-                    tvBooksCount.setText("0");
+                    tvBooksCount.setText(R.string.zero);
                     tvBadgesCount.setText(getString(R.string.badges_unlocked_count_format, 0, BadgeRules.TOTAL_BADGES));
                     tvStreakDays.setText(getResources().getQuantityString(R.plurals.streak_days_format, 0, 0));
                     tvProfileLevel.setText(BadgeRules.levelNameForUnlockedCount(context, 0));
@@ -581,8 +581,13 @@ public class ProfileActivity extends AppCompatActivity {
             SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.US);
             fmt.setLenient(false);
             fmt.setTimeZone(streakTimeZone());
-            long lastMs = fmt.parse(lastDay).getTime();
-            long todayMs = fmt.parse(todayDay).getTime();
+            Date dLast = fmt.parse(lastDay);
+            Date dToday = fmt.parse(todayDay);
+            if (dLast == null || dToday == null) {
+                return Integer.MAX_VALUE;
+            }
+            long lastMs = dLast.getTime();
+            long todayMs = dToday.getTime();
             long days = (todayMs - lastMs) / (24L * 60L * 60L * 1000L);
             return (int) days;
         } catch (Exception e) {
@@ -613,6 +618,7 @@ public class ProfileActivity extends AppCompatActivity {
         String coverUrl;
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private static class CurrentlyReadingAdapter extends RecyclerView.Adapter<CurrentlyReadingAdapter.BookVH> {
 
         interface OnBookClickListener {
