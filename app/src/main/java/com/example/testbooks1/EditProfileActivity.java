@@ -41,7 +41,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class EditProfileActivity extends AppCompatActivity {
 
@@ -122,7 +121,12 @@ public class EditProfileActivity extends AppCompatActivity {
                 if (last != null) {
                     etLastName.setText(last);
                 }
-                etBio.setText(Objects.requireNonNullElseGet(bio, () -> getString(R.string.bio_default_text)));
+                String defaultBio = getString(R.string.bio_default_text);
+                if (bio == null || bio.trim().isEmpty() || defaultBio.equals(bio.trim())) {
+                    etBio.setText("");
+                } else {
+                    etBio.setText(bio);
+                }
                 String fullName = ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
                 tvEditProfileName.setText(fullName.isEmpty() ? getString(R.string.profile_name) : fullName);
                 tvEditProfileName.setVisibility(View.VISIBLE);
@@ -169,8 +173,9 @@ public class EditProfileActivity extends AppCompatActivity {
         String firstName = etFirstName.getText().toString().trim();
         String lastName = etLastName.getText().toString().trim();
         String bio = etBio.getText().toString().trim();
-        if (bio.isEmpty()) {
-            bio = getString(R.string.bio_default_text);
+        String defaultBio = getString(R.string.bio_default_text);
+        if (bio.isEmpty() || bio.equals(defaultBio)) {
+            bio = "";
         }
 
         if (TextUtils.isEmpty(firstName) || TextUtils.isEmpty(lastName)) {
@@ -285,7 +290,8 @@ public class EditProfileActivity extends AppCompatActivity {
             while ((n = in.read(buf)) != -1) {
                 fos.write(buf, 0, n);
             }
-            return Uri.fromFile(out);
+        
+            return FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", out);
         } catch (IOException e) {
             return null;
         }
@@ -309,7 +315,7 @@ public class EditProfileActivity extends AppCompatActivity {
             }
             Toast.makeText(EditProfileActivity.this, R.string.toast_profile_updated, Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(EditProfileActivity.this, ProfileActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
             finish();
         });

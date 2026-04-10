@@ -22,16 +22,16 @@
             android:adjustViewBounds="true"
             android:scaleType="centerInside"
             android:src="@drawable/logo"
-            android:contentDescription="App Logo"/>
+            android:contentDescription="@string/logo_desc"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Bookshell"
             android:textSize="26sp"
-            android:textColor="@color/lightBlue"
             android:fontFamily="@font/jakarta_extra_bold"
             android:layout_gravity="center"
-            android:paddingStart="10dp"/>
+            android:paddingStart="10dp"
+            style="@style/BookshellBrandLightBlue" />
     </LinearLayout>
 
     <LinearLayout
@@ -77,9 +77,9 @@
                 android:text="TRENDING TOPICS"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="@color/lightBlue"
                 android:fontFamily="@font/jakarta_extra_bold"
-                android:paddingBottom="5dp"/>
+                android:paddingBottom="5dp"
+                style="@style/BookshellBrandLightBlue" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

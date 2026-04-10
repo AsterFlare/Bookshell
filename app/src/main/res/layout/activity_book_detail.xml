@@ -120,6 +120,7 @@
 
         <Button
             android:id="@+id/btnPreview"
+            style="@style/Widget.Bookshell.Button.Gold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/lightBrown"
@@ -138,6 +139,7 @@
             android:layout_marginBottom="18dp">
             <Button
                 android:id="@+id/btnCreateList"
+                style="@style/Widget.Bookshell.Button.Gold"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -151,6 +153,7 @@
                 app:iconGravity="textStart" />
             <Button
                 android:id="@+id/btnAddToList"
+                style="@style/Widget.Bookshell.Button.Gold"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

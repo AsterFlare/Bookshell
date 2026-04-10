@@ -99,6 +99,8 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
             intent.putExtra("author", book.getAuthor());
             intent.putExtra("description", book.getDescription());
             intent.putExtra("category", book.getCategory());
+            intent.putExtra("publisher", book.getPublisher());
+            intent.putExtra("readerLink", book.getReaderLink());
             context.startActivity(intent);
         });
     }

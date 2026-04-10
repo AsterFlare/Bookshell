@@ -7,6 +7,10 @@ android {
     namespace = "com.example.testbooks1"
      compileSdk = 36
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.testbooks1"
         minSdk = 24
@@ -44,6 +48,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("androidx.browser:browser:1.8.0")
     implementation("com.android.volley:volley:1.2.1")
     implementation("com.github.bumptech.glide:glide:5.0.5")
     implementation("androidx.core:core:1.10.1")

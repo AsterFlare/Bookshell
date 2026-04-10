@@ -31,13 +31,21 @@ import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.ViewHolder> {
-    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     DatabaseReference db = FirebaseDatabase.getInstance().getReference();
 
     Context context;
     ArrayList<CommunityItem> items;
+    private final Map<String, UserUi> userCache = new HashMap<>();
+    private final Map<String, ValueEventListener> userListeners = new HashMap<>();
+
+    private static class UserUi {
+        String fullName;
+        String imageUrl;
+    }
 
     public CommunityAdapter(Context context, ArrayList<CommunityItem> items) {
         this.context = context;
@@ -47,7 +55,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ShapeableImageView imgBook;
         TextView tvFullName, tvListTitle, tvListDescription;
-        ImageView btnOption, btnHeart;
+        ImageView btnOption, btnHeart, ivProfileImage;
         TextView tvHeartCount, tvCommentCount;
 
         public ViewHolder(View itemView) {
@@ -56,6 +64,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
             tvFullName = itemView.findViewById(R.id.tvFullName);
             tvListTitle = itemView.findViewById(R.id.tvListTitle);
             tvListDescription = itemView.findViewById(R.id.tvListDescription);
+            ivProfileImage = itemView.findViewById(R.id.ivProfileImage);
             btnOption = itemView.findViewById(R.id.btnOption);
             btnHeart = itemView.findViewById(R.id.btnHeart);
             tvHeartCount = itemView.findViewById(R.id.tvHeartCount);
@@ -72,17 +81,22 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
     @Override
     public void onBindViewHolder(ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         CommunityItem item = items.get(position);
-        String currentUserId = user.getUid();
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserId = firebaseUser != null ? firebaseUser.getUid() : null;
 
         DatabaseReference listRef = db.child("communityLists")
                 .child(item.userId)
                 .child(item.listId);
 
-        DatabaseReference reactRef = listRef.child("reactions").child(currentUserId);
+        DatabaseReference reactRef = currentUserId != null
+                ? listRef.child("reactions").child(currentUserId)
+                : null;
 
-        holder.tvFullName.setText(item.fullName);
+        holder.tvFullName.setText(item.fullName != null ? item.fullName : "Anonymous");
+        holder.ivProfileImage.setImageResource(R.drawable.default_pfp);
          holder.tvListTitle.setText(item.listTitle);
         holder.tvListDescription.setText(item.listDescription);
+        bindLiveUserUi(item, holder);
 
         if (item.coverImage != null && !item.coverImage.isEmpty()) {
             try {
@@ -119,20 +133,28 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
 
         holder.tvCommentCount.setText(String.valueOf(item.commentCount));
 
-        reactRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    holder.btnHeart.setImageResource(R.drawable.ic_heart_filled);
-                } else {
-                    holder.btnHeart.setImageResource(R.drawable.ic_community_heart);
+        if (reactRef != null) {
+            reactRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        holder.btnHeart.setImageResource(R.drawable.ic_heart_filled);
+                    } else {
+                        holder.btnHeart.setImageResource(R.drawable.ic_community_heart);
+                    }
                 }
-            }
-            @Override
-            public void onCancelled(DatabaseError error) {}
-        });
+                @Override
+                public void onCancelled(DatabaseError error) {}
+            });
+        } else {
+            holder.btnHeart.setImageResource(R.drawable.ic_community_heart);
+        }
 
         holder.btnHeart.setOnClickListener(v -> {
+            if (reactRef == null) {
+                Toast.makeText(context, R.string.toast_sign_in_to_react, Toast.LENGTH_SHORT).show();
+                return;
+            }
             reactRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
@@ -191,5 +213,63 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
     @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    private void bindLiveUserUi(CommunityItem item, ViewHolder holder) {
+        String userId = item.userId;
+        if (userId == null || userId.trim().isEmpty()) {
+            return;
+        }
+
+        UserUi cached = userCache.get(userId);
+        if (cached != null) {
+            holder.tvFullName.setText(cached.fullName);
+            if (cached.imageUrl != null && !cached.imageUrl.isEmpty()) {
+                Glide.with(context).load(cached.imageUrl)
+                        .placeholder(R.drawable.default_pfp)
+                        .error(R.drawable.default_pfp)
+                        .into(holder.ivProfileImage);
+            }
+        } else if (item.profileImageUrl != null && !item.profileImageUrl.isEmpty()) {
+            Glide.with(context).load(item.profileImageUrl)
+                    .placeholder(R.drawable.default_pfp)
+                    .error(R.drawable.default_pfp)
+                    .into(holder.ivProfileImage);
+        }
+
+        if (userListeners.containsKey(userId)) {
+            return;
+        }
+
+        ValueEventListener listener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                String first = snapshot.child("firstName").getValue(String.class);
+                String last = snapshot.child("lastName").getValue(String.class);
+                String image = snapshot.child("profileImageUrl").getValue(String.class);
+                String full = ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
+                if (full.isEmpty()) {
+                    full = "Anonymous";
+                }
+                UserUi ui = new UserUi();
+                ui.fullName = full;
+                ui.imageUrl = image;
+                userCache.put(userId, ui);
+                notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+            }
+        };
+        db.child("users").child(userId).addValueEventListener(listener);
+        userListeners.put(userId, listener);
+    }
+
+    public void detachUserProfileListeners() {
+        for (Map.Entry<String, ValueEventListener> e : new HashMap<>(userListeners).entrySet()) {
+            db.child("users").child(e.getKey()).removeEventListener(e.getValue());
+        }
+        userListeners.clear();
     }
 }

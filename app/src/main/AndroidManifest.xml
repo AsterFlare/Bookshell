@@ -55,12 +55,10 @@
             android:exported="false" />
         <activity
             android:name=".ProfileActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
         <activity
             android:name=".SettingsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AccountDetailsActivity"
             android:exported="false" />
         <activity
             android:name=".BadgesActivity"
@@ -85,7 +83,8 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
     </application>
 
 </manifest>

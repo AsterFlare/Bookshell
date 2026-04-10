@@ -95,6 +95,8 @@ public class BookHorizontalAdapter extends RecyclerView.Adapter<BookHorizontalAd
             intent.putExtra("author", book.getAuthor());
             intent.putExtra("description", book.getDescription());
             intent.putExtra("category", book.getCategory());
+            intent.putExtra("publisher", book.getPublisher());
+            intent.putExtra("readerLink", book.getReaderLink());
             context.startActivity(intent);
         });
     }

@@ -21,7 +21,7 @@
             android:layout_height="80dp"
             android:adjustViewBounds="true"
             android:scaleType="centerInside"
-            android:contentDescription="App logo"
+            android:contentDescription="@string/logo_desc"
             android:src="@drawable/logo"/>
 
         <TextView
@@ -30,10 +30,10 @@
             android:layout_gravity="center"
             android:paddingStart="10dp"
             android:text="Bookshell"
-            android:textColor="@color/lightBlue"
             android:textSize="26sp"
             android:fontFamily="@font/jakarta_extra_bold"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            style="@style/BookshellBrandLightBlue" />
     </LinearLayout>
 
     <LinearLayout
@@ -91,8 +91,8 @@
                 android:text="CURATION"
                 android:textSize="14sp"
                 android:fontFamily="@font/jakarta_extra_bold"
-                android:textColor="@color/lightBlue"
-                android:layout_marginLeft="14dp"/>
+                android:layout_marginLeft="14dp"
+                style="@style/BookshellBrandLightBlue" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

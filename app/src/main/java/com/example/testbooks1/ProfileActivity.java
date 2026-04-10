@@ -3,6 +3,8 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +48,9 @@ import java.util.TimeZone;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    /** Calendar for streak, check-in, and weekly bars (Philippines). */
+    private static final String STREAK_ZONE_ID = "Asia/Manila";
+
     private TextView tvFullName, tvProfileBio, tvBooksCount, tvBadgesCount, tvStreakDays, tvViewAllBadges;
     private TextView tvProfileLevel;
     private TextView tvCurrentlyReadingEmpty;
@@ -67,6 +72,12 @@ public class ProfileActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private String userId;
+
+   
+    private String cachedLastStreakDateForCheckIn;
+    private final Handler checkInDateHandler = new Handler(Looper.getMainLooper());
+    @Nullable
+    private Runnable checkInMidnightRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +114,9 @@ public class ProfileActivity extends AppCompatActivity {
                 findViewById(R.id.streakBar1),
                 findViewById(R.id.streakBar2),
                 findViewById(R.id.streakBar3),
-                findViewById(R.id.streakBar4)
+                findViewById(R.id.streakBar4),
+                findViewById(R.id.streakBar5),
+                findViewById(R.id.streakBar6)
         };
         streakBarMaxHeightPx = (int) (80 * getResources().getDisplayMetrics().density + 0.5f);
         tvCurrentlyReadingEmpty = findViewById(R.id.tvCurrentlyReadingEmpty);
@@ -142,11 +155,66 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        refreshDailyCheckInButtonAfterCalendarChange();
+        scheduleCheckInRefreshAtNextStreakMidnight();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshDailyCheckInButtonAfterCalendarChange();
+    }
+
+    @Override
+    protected void onStop() {
+        cancelScheduledCheckInMidnightRefresh();
+        super.onStop();
+    }
+
+    /**
+     * Stats listener only runs when Firebase data changes, so crossing midnight does not fire it.
+     * Recompute whether today's streak day key ({@link #streakDayKey()}) still matches {@link #cachedLastStreakDateForCheckIn}.
+     */
+    private void refreshDailyCheckInButtonAfterCalendarChange() {
+        if (isFinishing() || btnDailyCheckIn == null) {
+            return;
+        }
+        if (cachedLastStreakDateForCheckIn == null) {
+            return;
+        }
+        String today = streakDayKey();
+        boolean alreadyCheckedInToday = today.equals(cachedLastStreakDateForCheckIn);
+        btnDailyCheckIn.setEnabled(!alreadyCheckedInToday);
+        btnDailyCheckIn.setText(alreadyCheckedInToday
+                ? R.string.action_checked_in_today
+                : R.string.action_daily_check_in);
+    }
+
+    private void scheduleCheckInRefreshAtNextStreakMidnight() {
+        cancelScheduledCheckInMidnightRefresh();
+        long delay = millisUntilNextStreakMidnight();
+        checkInMidnightRunnable = () -> {
+            refreshDailyCheckInButtonAfterCalendarChange();
+            scheduleCheckInRefreshAtNextStreakMidnight();
+        };
+        checkInDateHandler.postDelayed(checkInMidnightRunnable, delay);
+    }
+
+    private void cancelScheduledCheckInMidnightRefresh() {
+        if (checkInMidnightRunnable != null) {
+            checkInDateHandler.removeCallbacks(checkInMidnightRunnable);
+            checkInMidnightRunnable = null;
+        }
+    }
+
     private void setupNavigation() {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                startActivity(new Intent(context, MainActivity.class));
+                MainActivity.openHome(context);
                 return true;
             } else if (id == R.id.nav_search) {
                 startActivity(new Intent(context, SearchActivity.class));
@@ -220,7 +288,7 @@ public class ProfileActivity extends AppCompatActivity {
                 if (!snapshot.exists()) {
                     tvBooksCount.setText("0");
                     tvBadgesCount.setText(getString(R.string.badges_unlocked_count_format, 0, BadgeRules.TOTAL_BADGES));
-                    tvStreakDays.setText(getString(R.string.streak_days_format, 0));
+                    tvStreakDays.setText(getResources().getQuantityString(R.plurals.streak_days_format, 0, 0));
                     tvProfileLevel.setText(BadgeRules.levelNameForUnlockedCount(context, 0));
                     tvBooksCount.setVisibility(View.VISIBLE);
                     tvBadgesCount.setVisibility(View.VISIBLE);
@@ -228,7 +296,10 @@ public class ProfileActivity extends AppCompatActivity {
                     profileBadgeRows.clear();
                     profileBadgeRows.addAll(BadgeRules.badgeRowsFromStats(context, 0, 0, 0));
                     profileBadgeAdapter.notifyDataSetChanged();
-                    applyStreakBars(0L);
+                    applyStreakBars(null);
+                    cachedLastStreakDateForCheckIn = null;
+                    btnDailyCheckIn.setEnabled(true);
+                    btnDailyCheckIn.setText(R.string.action_daily_check_in);
                     return;
                 }
                 long completed = BadgeRules.readStatLong(snapshot, "completed");
@@ -236,32 +307,39 @@ public class ProfileActivity extends AppCompatActivity {
                 long readingLists = BadgeRules.readStatLong(snapshot, "readingLists");
                 long streak = BadgeRules.readStatLong(snapshot, "readingStreak");
                 String lastStreakDate = snapshot.child("lastStreakDate").getValue(String.class);
-                String today = pstDayKey();
-                int dayGap = dayGapPst(lastStreakDate, today);
+                cachedLastStreakDateForCheckIn = lastStreakDate;
+                String today = streakDayKey();
+                int dayGap = dayGapStreak(lastStreakDate, today);
 
                 if (dayGap >= 2 && streak != 0L) {
                     DatabaseReference statsRef = mDatabase.child("users").child(userId).child("stats");
                     statsRef.child("readingStreak").setValue(0L);
-                    for (int i = 0; i < 5; i++) {
+                    for (int i = 0; i < 7; i++) {
                         statsRef.child("weeklyActivity").child(String.valueOf(i)).setValue(0L);
                     }
                     streak = 0L;
                 }
 
+            
+                if (streak == 1L && today.equals(lastStreakDate)) {
+                    if (enforceSingleDayWeeklyForStreakOne(snapshot.child("weeklyActivity"))) {
+                        refreshDailyCheckInButtonAfterCalendarChange();
+                        return;
+                    }
+                }
+
                 if (normalizeWeeklyActivityIfNeeded(streak, lastStreakDate, today, snapshot.child("weeklyActivity"))) {
+                    refreshDailyCheckInButtonAfterCalendarChange();
                     return;
                 }
 
-                boolean alreadyCheckedInToday = today.equals(lastStreakDate);
-                btnDailyCheckIn.setEnabled(!alreadyCheckedInToday);
-                btnDailyCheckIn.setText(alreadyCheckedInToday
-                        ? R.string.action_checked_in_today
-                        : R.string.action_daily_check_in);
+                refreshDailyCheckInButtonAfterCalendarChange();
 
                 tvBooksCount.setText(String.valueOf(completed));
                 int unlocked = BadgeRules.countUnlocked(completed, reviews, readingLists);
                 tvBadgesCount.setText(getString(R.string.badges_unlocked_count_format, unlocked, BadgeRules.TOTAL_BADGES));
-                tvStreakDays.setText(getString(R.string.streak_days_format, (int) streak));
+                int streakInt = (int) streak;
+                tvStreakDays.setText(getResources().getQuantityString(R.plurals.streak_days_format, streakInt, streakInt));
                 tvProfileLevel.setText(BadgeRules.levelNameForUnlockedCount(context, unlocked));
                 tvBooksCount.setVisibility(View.VISIBLE);
                 tvBadgesCount.setVisibility(View.VISIBLE);
@@ -270,7 +348,7 @@ public class ProfileActivity extends AppCompatActivity {
                 profileBadgeRows.addAll(BadgeRules.badgeRowsFromStats(context, completed, reviews, readingLists));
                 profileBadgeAdapter.notifyDataSetChanged();
 
-                applyStreakBars(streak);
+                applyStreakBars(snapshot.child("weeklyActivity"));
             }
 
             @Override
@@ -280,22 +358,37 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    private boolean enforceSingleDayWeeklyForStreakOne(@NonNull DataSnapshot weeklyActivitySnapshot) {
+        int todayIdx = dayOfWeekIndexStreak();
+        boolean needsFix = false;
+        for (int i = 0; i < 7; i++) {
+            long v = BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(i));
+            if (i == todayIdx) {
+                if (v <= 0L) {
+                    needsFix = true;
+                }
+            } else if (v > 0L) {
+                needsFix = true;
+            }
+        }
+        if (!needsFix) {
+            return false;
+        }
+        DatabaseReference waRef = mDatabase.child("users").child(userId).child("stats").child("weeklyActivity");
+        for (int i = 0; i < 7; i++) {
+            waRef.child(String.valueOf(i)).setValue(i == todayIdx ? 1L : 0L);
+        }
+        return true;
+    }
+
     private boolean normalizeWeeklyActivityIfNeeded(long streak,
                                                     @Nullable String lastStreakDate,
                                                     @NonNull String today,
                                                     @NonNull DataSnapshot weeklyActivitySnapshot) {
-        long[] bars = new long[5];
-        long maxValue = 0L;
-        int maxIndex = -1;
         boolean hasAny = false;
-        for (int i = 0; i < 5; i++) {
-            bars[i] = BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(i));
-            if (bars[i] > 0L) {
+        for (int i = 0; i < 7; i++) {
+            if (BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(i)) > 0L) {
                 hasAny = true;
-                if (bars[i] > maxValue) {
-                    maxValue = bars[i];
-                    maxIndex = i;
-                }
             }
         }
 
@@ -304,7 +397,7 @@ public class ProfileActivity extends AppCompatActivity {
                 return false;
             }
             DatabaseReference waRef = mDatabase.child("users").child(userId).child("stats").child("weeklyActivity");
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 7; i++) {
                 waRef.child(String.valueOf(i)).setValue(0L);
             }
             return true;
@@ -314,26 +407,26 @@ public class ProfileActivity extends AppCompatActivity {
             return false;
         }
 
-        int expectedIndex = (int) Math.max(0, Math.min(4, streak - 1L));
-        if (maxIndex == -1 || maxIndex == expectedIndex) {
+        int todayIndex = dayOfWeekIndexStreak();
+        if (BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(todayIndex)) > 0L) {
             return false;
         }
 
-        DatabaseReference waRef = mDatabase.child("users").child(userId).child("stats").child("weeklyActivity");
-        for (int i = 0; i < 5; i++) {
-            waRef.child(String.valueOf(i)).setValue(i == expectedIndex ? Math.max(25L, maxValue) : 0L);
-        }
+        
+        mDatabase.child("users").child(userId).child("stats")
+                .child("weeklyActivity").child(String.valueOf(todayIndex)).setValue(1L);
         return true;
     }
 
-    private void applyStreakBars(long streakDays) {
+    private void applyStreakBars(@Nullable DataSnapshot weeklyActivitySnapshot) {
         if (streakBars == null) {
             return;
         }
-        for (int i = 0; i < 5; i++) {
-            long daysInSegment = Math.max(0L, Math.min(7L, streakDays - (i * 7L)));
-            long pct = Math.round((daysInSegment * 100.0) / 7.0);
-            int h = (int) Math.max(8, streakBarMaxHeightPx * pct / 100.0);
+        for (int i = 0; i < 7; i++) {
+            long val = weeklyActivitySnapshot == null
+                    ? 0L
+                    : BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(i));
+            int h = val > 0L ? streakBarMaxHeightPx : 8;
             ViewGroup.LayoutParams lp = streakBars[i].getLayoutParams();
             lp.height = h;
             streakBars[i].setLayoutParams(lp);
@@ -390,28 +483,26 @@ public class ProfileActivity extends AppCompatActivity {
             @NonNull
             @Override
             public Transaction.Result doTransaction(@NonNull MutableData currentData) {
-                String today = pstDayKey();
+                String today = streakDayKey();
                 String last = currentData.child("lastStreakDate").getValue(String.class);
                 if (today.equals(last)) {
                     return Transaction.success(currentData);
                 }
 
                 long currentStreak = readMutableLong(currentData.child("readingStreak"));
-                int gap = dayGapPst(last, today);
+                int gap = dayGapStreak(last, today);
                 long nextStreak = (gap == 1) ? (currentStreak + 1L) : 1L;
 
                 currentData.child("readingStreak").setValue(nextStreak);
                 currentData.child("lastStreakDate").setValue(today);
 
-                int bar = (int) Math.max(0, Math.min(4, nextStreak - 1));
+                int dayIndex = dayOfWeekIndexStreak();
                 if (nextStreak == 1L) {
-                    for (int i = 0; i < 5; i++) {
+                    for (int i = 0; i < 7; i++) {
                         currentData.child("weeklyActivity").child(String.valueOf(i)).setValue(0L);
                     }
                 }
-                long prev = readMutableLong(currentData.child("weeklyActivity").child(String.valueOf(bar)));
-                currentData.child("weeklyActivity").child(String.valueOf(bar))
-                        .setValue(Math.min(100L, prev + 25L));
+                currentData.child("weeklyActivity").child(String.valueOf(dayIndex)).setValue(1L);
                 return Transaction.success(currentData);
             }
 
@@ -421,11 +512,29 @@ public class ProfileActivity extends AppCompatActivity {
                     Toast.makeText(context, R.string.toast_check_in_failed, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                String today = pstDayKey();
+                String today = streakDayKey();
                 String last = currentData != null ? currentData.child("lastStreakDate").getValue(String.class) : null;
-                if (today.equals(last)) {
-                    Toast.makeText(context, R.string.toast_checked_in_today, Toast.LENGTH_SHORT).show();
+                if (!today.equals(last)) {
+                    return;
                 }
+                FirebaseDatabase.getInstance().getReference("users").child(userId).child("stats").get()
+                        .addOnCompleteListener(t -> {
+                            if (isFinishing()) {
+                                return;
+                            }
+                            DataSnapshot snap = t.isSuccessful() ? t.getResult() : null;
+                            BadgeMilestoneHelper.runAfterStatsCelebrations(
+                                    ProfileActivity.this,
+                                    getApplicationContext(),
+                                    userId,
+                                    snap,
+                                    () -> {
+                                        if (isFinishing()) {
+                                            return;
+                                        }
+                                        Toast.makeText(context, R.string.toast_checked_in_today, Toast.LENGTH_SHORT).show();
+                                    });
+                        });
             }
         });
     }
@@ -447,20 +556,31 @@ public class ProfileActivity extends AppCompatActivity {
         return 0L;
     }
 
-    private static String pstDayKey() {
+    private static TimeZone streakTimeZone() {
+        return TimeZone.getTimeZone(STREAK_ZONE_ID);
+    }
+
+    private static String streakDayKey() {
         SimpleDateFormat dayKey = new SimpleDateFormat("yyyyMMdd", Locale.US);
-        dayKey.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+        dayKey.setTimeZone(streakTimeZone());
         return dayKey.format(Calendar.getInstance().getTime());
     }
 
-    private static int dayGapPst(@Nullable String lastDay, @NonNull String todayDay) {
+    /** Monday=0 … Sunday=6 in Manila streak zone. */
+    private static int dayOfWeekIndexStreak() {
+        Calendar cal = Calendar.getInstance(streakTimeZone(), Locale.US);
+        int dow = cal.get(Calendar.DAY_OF_WEEK);
+        return (dow + 5) % 7;
+    }
+
+    private static int dayGapStreak(@Nullable String lastDay, @NonNull String todayDay) {
         if (lastDay == null || lastDay.isEmpty()) {
             return Integer.MAX_VALUE;
         }
         try {
             SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.US);
             fmt.setLenient(false);
-            fmt.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+            fmt.setTimeZone(streakTimeZone());
             long lastMs = fmt.parse(lastDay).getTime();
             long todayMs = fmt.parse(todayDay).getTime();
             long days = (todayMs - lastMs) / (24L * 60L * 60L * 1000L);
@@ -468,6 +588,20 @@ public class ProfileActivity extends AppCompatActivity {
         } catch (Exception e) {
             return Integer.MAX_VALUE;
         }
+    }
+
+    private static long millisUntilNextStreakMidnight() {
+        TimeZone tz = streakTimeZone();
+        Calendar now = Calendar.getInstance(tz, Locale.US);
+        Calendar next = (Calendar) now.clone();
+        next.set(Calendar.HOUR_OF_DAY, 0);
+        next.set(Calendar.MINUTE, 0);
+        next.set(Calendar.SECOND, 0);
+        next.set(Calendar.MILLISECOND, 0);
+        if (!next.after(now)) {
+            next.add(Calendar.DAY_OF_MONTH, 1);
+        }
+        return Math.max(1L, next.getTimeInMillis() - now.getTimeInMillis());
     }
 
     private static class CurrentlyReadingBook {

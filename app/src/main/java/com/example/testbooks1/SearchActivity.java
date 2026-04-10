@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SearchActivity extends AppCompatActivity {
 
@@ -105,7 +106,7 @@ public class SearchActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                startActivity(new Intent(c, MainActivity.class));
+                MainActivity.openHome(c);
                 return true;
             } else if (id == R.id.nav_search) {
                 //startActivity(new Intent(c, SearchActivity.class));
@@ -197,16 +198,47 @@ public class SearchActivity extends AppCompatActivity {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
-                        recentList.clear();
+                        Map<String, Book> bestById = new HashMap<>();
+                        Map<String, Long> bestTs = new HashMap<>();
 
                         for (DataSnapshot ds : snapshot.getChildren()) {
                             Book book = ds.getValue(Book.class);
-                            if (book != null) {
-                                recentList.add(book);
+                            if (book == null) {
+                                continue;
+                            }
+                            String id = book.getId();
+                            if (id == null || id.isEmpty()) {
+                                id = ds.getKey();
+                            }
+                            if (id == null || id.isEmpty()) {
+                                continue;
+                            }
+                            Long ts = ds.child("timestamp").getValue(Long.class);
+                            if (ts == null) {
+                                ts = 0L;
+                            }
+                            Long prev = bestTs.get(id);
+                            if (prev == null || ts >= prev) {
+                                if (book.getId() == null || book.getId().isEmpty()) {
+                                    book.setId(id);
+                                }
+                                bestById.put(id, book);
+                                bestTs.put(id, ts);
                             }
                         }
 
-                        Collections.reverse(recentList);
+                        List<String> ids = new ArrayList<>(bestById.keySet());
+                        Collections.sort(ids, (a, b) -> Long.compare(
+                                bestTs.getOrDefault(b, 0L),
+                                bestTs.getOrDefault(a, 0L)));
+
+                        recentList.clear();
+                        for (String id : ids) {
+                            recentList.add(bestById.get(id));
+                            if (recentList.size() >= 10) {
+                                break;
+                            }
+                        }
                         recentAdapter.notifyDataSetChanged();
 
                         if (recentList.isEmpty()) {

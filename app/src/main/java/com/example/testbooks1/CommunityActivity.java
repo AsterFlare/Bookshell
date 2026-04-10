@@ -3,10 +3,7 @@ package com.example.testbooks1;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -29,6 +26,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class CommunityActivity extends AppCompatActivity {
 
@@ -37,7 +36,6 @@ public class CommunityActivity extends AppCompatActivity {
     ArrayList<CommunityItem> communityList;
     TextView tvNoCommunity;
     CommunityAdapter adapter;
-    ImageView btnCreateList;
     BottomNavigationView bottomNav;
     Context c;
 
@@ -63,16 +61,14 @@ public class CommunityActivity extends AppCompatActivity {
         communityList = new ArrayList<>();
         adapter = new CommunityAdapter(c, communityList);
         recyclerView.setAdapter(adapter);
-        btnCreateList = findViewById(R.id.btnCreateList);
-        loadCommunityData();
-
-        btnCreateList.setOnClickListener(v -> startActivity(new Intent(c, CreateListActivity.class)));
+        findViewById(R.id.fabCreateList).setOnClickListener(
+                v -> startActivity(new Intent(c, CreateListActivity.class)));
         bottomNav = findViewById(R.id.bottomNavigationView);
         bottomNav.setSelectedItemId(R.id.nav_community);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                startActivity(new Intent(c, MainActivity.class));
+                MainActivity.openHome(c);
                 return true;
             } else if (id == R.id.nav_search) {
                 startActivity(new Intent(c, SearchActivity.class));
@@ -91,6 +87,20 @@ public class CommunityActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadCommunityData();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (adapter != null) {
+            adapter.detachUserProfileListeners();
+        }
+        super.onDestroy();
+    }
+
     private void loadCommunityData() {
         progress.setVisibility(View.VISIBLE);
         tvNoCommunity.setVisibility(View.GONE);
@@ -99,6 +109,9 @@ public class CommunityActivity extends AppCompatActivity {
         db.child("communityLists").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
+                communityList.clear();
+                adapter.notifyDataSetChanged();
+
                 ArrayList<DataSnapshot> allListSnaps = new ArrayList<>();
                 for (DataSnapshot userSnap : snapshot.getChildren()) {
                     for (DataSnapshot listSnap : userSnap.getChildren()) {
@@ -107,7 +120,6 @@ public class CommunityActivity extends AppCompatActivity {
                 }
 
                 final int totalLists = allListSnaps.size();
-                final int[] loadedCount = {0};
 
                 if (totalLists == 0) {
                     progress.setVisibility(View.GONE);
@@ -115,11 +127,15 @@ public class CommunityActivity extends AppCompatActivity {
                     return;
                 }
 
+                final List<CommunityItem> loadedBuffer = new ArrayList<>();
+                final int[] loadedCount = {0};
+
                 for (DataSnapshot listSnap : allListSnaps) {
                     String listId = listSnap.getKey();
                     String listTitle = listSnap.child("title").getValue(String.class);
                     String listDescription = listSnap.child("description").getValue(String.class);
                     String coverImage = listSnap.child("coverImage").getValue(String.class);
+                    final long listTimestampMs = parseListTimestamp(listSnap);
 
                     ArrayList<CommunityBook> books = new ArrayList<>();
                     for (DataSnapshot bookSnap : listSnap.child("books").getChildren()) {
@@ -136,36 +152,59 @@ public class CommunityActivity extends AppCompatActivity {
                         public void onDataChange(DataSnapshot userData) {
                             String firstName = userData.child("firstName").getValue(String.class);
                             String lastName = userData.child("lastName").getValue(String.class);
+                            String profileImageUrl = userData.child("profileImageUrl").getValue(String.class);
 
                             CommunityItem item = new CommunityItem();
                             item.userId = fUserId;
                             item.listId = listId;
-                            item.fullName = firstName + " " + lastName;
+                            String fn = firstName != null ? firstName : "";
+                            String ln = lastName != null ? lastName : "";
+                            String fullName = (fn + " " + ln).trim();
+                            item.fullName = fullName.isEmpty() ? "Anonymous" : fullName;
+                            item.profileImageUrl = profileImageUrl;
                             item.listTitle = listTitle;
                             item.listDescription = listDescription;
                             item.coverImage = coverImage;
                             item.firstBookImage = firstBookImage;
                             item.books = books;
+                            item.timestampMs = listTimestampMs;
 
                             if (listSnap.hasChild("comments")) {
                                 item.commentCount = (int) listSnap.child("comments").getChildrenCount();
                             } else {
                                 item.commentCount = 0;
                             }
-                            communityList.add(item);
-                            adapter.notifyDataSetChanged();
-
-                            loadedCount[0]++;
-                            if (loadedCount[0] == totalLists) {
-                                progress.setVisibility(View.GONE);
+                            synchronized (loadedBuffer) {
+                                loadedBuffer.add(item);
+                                loadedCount[0]++;
+                                if (loadedCount[0] == totalLists) {
+                                    sortAndShowCommunityFeed(loadedBuffer);
+                                }
                             }
                         }
 
                         @Override
                         public void onCancelled(DatabaseError error) {
-                            loadedCount[0]++;
-                            if (loadedCount[0] == totalLists) {
-                                progress.setVisibility(View.GONE);
+                            CommunityItem fallback = new CommunityItem();
+                            fallback.userId = fUserId;
+                            fallback.listId = listId;
+                            fallback.fullName = "Anonymous";
+                            fallback.profileImageUrl = null;
+                            fallback.listTitle = listTitle;
+                            fallback.listDescription = listDescription;
+                            fallback.coverImage = coverImage;
+                            fallback.firstBookImage = firstBookImage;
+                            fallback.books = books;
+                            fallback.timestampMs = listTimestampMs;
+                            if (listSnap.hasChild("comments")) {
+                                fallback.commentCount = (int) listSnap.child("comments").getChildrenCount();
+                            }
+                            synchronized (loadedBuffer) {
+                                loadedBuffer.add(fallback);
+                                loadedCount[0]++;
+                                if (loadedCount[0] == totalLists) {
+                                    sortAndShowCommunityFeed(loadedBuffer);
+                                }
                             }
                         }
                     });
@@ -177,5 +216,42 @@ public class CommunityActivity extends AppCompatActivity {
                 progress.setVisibility(View.GONE);
             }
         });
+    }
+
+    private void sortAndShowCommunityFeed(List<CommunityItem> buffer) {
+        Collections.sort(buffer, (a, b) -> {
+            int cmp = Long.compare(b.timestampMs, a.timestampMs);
+            if (cmp != 0) {
+                return cmp;
+            }
+            String idA = a.listId != null ? a.listId : "";
+            String idB = b.listId != null ? b.listId : "";
+            return idA.compareTo(idB);
+        });
+        communityList.clear();
+        communityList.addAll(buffer);
+        adapter.notifyDataSetChanged();
+        progress.setVisibility(View.GONE);
+    }
+
+    private static long parseListTimestamp(DataSnapshot listSnap) {
+        DataSnapshot ts = listSnap.child("timestamp");
+        if (!ts.exists() || ts.getValue() == null) {
+            return 0L;
+        }
+        Object val = ts.getValue();
+        if (val instanceof Long) {
+            return (Long) val;
+        }
+        if (val instanceof Integer) {
+            return ((Integer) val).longValue();
+        }
+        if (val instanceof Double) {
+            return ((Double) val).longValue();
+        }
+        if (val instanceof Number) {
+            return ((Number) val).longValue();
+        }
+        return 0L;
     }
 }

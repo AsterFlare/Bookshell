@@ -72,7 +72,7 @@ public class ListDetailActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                startActivity(new Intent(c, MainActivity.class));
+                MainActivity.openHome(c);
                 return true;
             } else if (id == R.id.nav_search) {
                 startActivity(new Intent(c, SearchActivity.class));
@@ -134,8 +134,13 @@ public class ListDetailActivity extends AppCompatActivity {
                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
-                        String fullName = snapshot.child("firstName").getValue(String.class) + " " +
-                                snapshot.child("lastName").getValue(String.class);
+                        String firstName = snapshot.child("firstName").getValue(String.class);
+                        String lastName = snapshot.child("lastName").getValue(String.class);
+                        String fullName = ((firstName != null ? firstName : "") + " "
+                                + (lastName != null ? lastName : "")).trim();
+                        if (fullName.isEmpty()) {
+                            fullName = "Anonymous";
+                        }
 
                         Comment comment = new Comment(
                                 commentId,
@@ -144,8 +149,13 @@ public class ListDetailActivity extends AppCompatActivity {
                                 text,
                                 System.currentTimeMillis()
                         );
-                        listRef.child("comments").child(commentId).setValue(comment);
-                        etComment.setText("");
+                        listRef.child("comments").child(commentId).setValue(comment).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                etComment.setText("");
+                            } else {
+                                Toast.makeText(ListDetailActivity.this, R.string.toast_comment_failed, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
 
                     @Override
@@ -156,6 +166,14 @@ public class ListDetailActivity extends AppCompatActivity {
             }
         });
         btnBack.setOnClickListener(v -> { finish(); });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (commentAdapter != null) {
+            commentAdapter.detachUserProfileListeners();
+        }
+        super.onDestroy();
     }
 
     private void loadBooks() {

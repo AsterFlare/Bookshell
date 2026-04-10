@@ -196,6 +196,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/addToCommunity"
+                style="@style/Widget.Bookshell.Button.Gold"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Share to Community"

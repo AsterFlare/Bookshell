@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.testbooks1.Adapter.UserBooksAdapter;
+import com.example.testbooks1.BadgeMilestoneHelper;
 import com.example.testbooks1.Model.AuthManager;
 import com.example.testbooks1.Model.CommunityBook;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -32,6 +33,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
@@ -39,6 +41,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class AddToListActivity extends AppCompatActivity {
     private static final String TAG = "AddToListActivity";
@@ -85,7 +88,7 @@ public class AddToListActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                startActivity(new Intent(c, MainActivity.class));
+                MainActivity.openHome(c);
                 return true;
             } else if (id == R.id.nav_search) {
                 startActivity(new Intent(c, SearchActivity.class));
@@ -145,7 +148,7 @@ public class AddToListActivity extends AppCompatActivity {
                     } else {
                         removeBookFromSelected(book.bookId);
                     }
-                    userBooksAdapter.notifyDataSetChanged();
+                    userBooksAdapter.notifyItemRangeChanged(0, userBooks.size());
                 }
         );
 
@@ -187,6 +190,7 @@ public class AddToListActivity extends AppCompatActivity {
         userBooksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int previousSize = userBooks.size();
                 userBooks.clear();
                 if (firstBookFromIntent != null) {
                     userBooks.add(firstBookFromIntent);
@@ -223,6 +227,7 @@ public class AddToListActivity extends AppCompatActivity {
         userBooksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int previousSize = userBooks.size();
                 userBooks.clear();
                 if (firstBookFromIntent != null) {
                     userBooks.add(firstBookFromIntent);
@@ -242,7 +247,12 @@ public class AddToListActivity extends AppCompatActivity {
                         userBooks.add(book);
                     }
                 }
-                userBooksAdapter.notifyDataSetChanged();
+                if (previousSize > 0) {
+                    userBooksAdapter.notifyItemRangeRemoved(0, previousSize);
+                }
+                if (!userBooks.isEmpty()) {
+                    userBooksAdapter.notifyItemRangeInserted(0, userBooks.size());
+                }
             }
 
             @Override
@@ -253,9 +263,11 @@ public class AddToListActivity extends AppCompatActivity {
     private void saveCommunityList() {
         String uid = AuthManager.getUid();
         if (uid == null) return;
+        btnShare.setEnabled(false);
 
         if (selectedBooks.size() < 2) {
             Toast.makeText(this, "Please select at least 2 books.", Toast.LENGTH_SHORT).show();
+            btnShare.setEnabled(true);
             return;
         }
 
@@ -264,41 +276,85 @@ public class AddToListActivity extends AppCompatActivity {
 
         if (title.isEmpty()) {
             Toast.makeText(this, "Please enter a title.", Toast.LENGTH_SHORT).show();
+            btnShare.setEnabled(true);
             return;
         } if (description.isEmpty()) {
             Toast.makeText(this, "Please enter a description.", Toast.LENGTH_SHORT).show();
+            btnShare.setEnabled(true);
             return;
         }
 
         String listId = communityRef.child(uid).push().getKey();
         if (listId == null) {
             Toast.makeText(this, "Unable to create list ID.", Toast.LENGTH_SHORT).show();
+            btnShare.setEnabled(true);
             return;
         }
         DatabaseReference listRef = communityRef.child(uid).child(listId);
-        listRef.child("title").setValue(title);
-        listRef.child("description").setValue(description);
-        listRef.child("timestamp").setValue(System.currentTimeMillis());
-        listRef.child("reactionCount").setValue(0);
-        listRef.child("reactions").setValue(new HashMap<>());
 
-        if (coverImageBase64 != null && !coverImageBase64.isEmpty()) {
-            listRef.child("coverImage").setValue(coverImageBase64);
-        }
-
+        Map<String, Object> booksMap = new HashMap<>();
         for (CommunityBook book : selectedBooks) {
-            // finalTitle = book.title != null ? book.title : book.bookTitle;
-            //String finalImage = book.image != null ? book.image : book.imageUrl;
             HashMap<String, Object> map = new HashMap<>();
             map.put("title", book.title);
             map.put("author", book.author);
             map.put("imageUrl", book.imageUrl);
             map.put("category", book.category);
             map.put("description", book.description);
-            listRef.child("books").child(book.bookId).setValue(map);
+            booksMap.put(book.bookId, map);
         }
-        Toast.makeText(c, "List shared successfully.", Toast.LENGTH_SHORT).show();
-        finish();
+        Map<String, Object> listData = new HashMap<>();
+        listData.put("title", title);
+        listData.put("description", description);
+        listData.put("timestamp", System.currentTimeMillis());
+        listData.put("reactionCount", 0);
+        listData.put("reactions", new HashMap<String, Object>());
+        listData.put("books", booksMap);
+        if (coverImageBase64 != null && !coverImageBase64.isEmpty()) {
+            listData.put("coverImage", coverImageBase64);
+        }
+
+        listRef.setValue(listData).addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                btnShare.setEnabled(true);
+                Toast.makeText(c, R.string.toast_share_list_failed, Toast.LENGTH_LONG).show();
+                return;
+            }
+            publishStatsAndFinish(uid);
+        });
+    }
+
+    private void publishStatsAndFinish(String uid) {
+        DatabaseReference statsRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(uid)
+                .child("stats")
+                .child("readingLists");
+        statsRef.setValue(ServerValue.increment(1)).addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                btnShare.setEnabled(true);
+                Toast.makeText(c, R.string.toast_share_list_failed, Toast.LENGTH_LONG).show();
+                return;
+            }
+            FirebaseDatabase.getInstance().getReference("users").child(uid).child("stats").get()
+                    .addOnCompleteListener(t2 -> {
+                        if (isFinishing()) {
+                            return;
+                        }
+                        Runnable done = () -> {
+                            if (isFinishing()) {
+                                return;
+                            }
+                            Toast.makeText(c, R.string.toast_list_shared_success, Toast.LENGTH_SHORT).show();
+                            finish();
+                        };
+                        if (t2.isSuccessful() && t2.getResult() != null) {
+                            BadgeMilestoneHelper.runAfterStatsCelebrations(
+                                    AddToListActivity.this, getApplicationContext(), uid, t2.getResult(), done);
+                        } else {
+                            done.run();
+                        }
+                    });
+        });
     }
 
     private void removeBookFromSelected(String bookId) {

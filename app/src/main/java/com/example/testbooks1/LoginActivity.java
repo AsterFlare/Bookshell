@@ -40,14 +40,24 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         c = this;
+        applySafeAreaPaddingOnce();
         initialize();
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            int left = v.getPaddingLeft() + systemBars.left;
-            int top = v.getPaddingTop() + systemBars.top;
-            int right = v.getPaddingRight() + systemBars.right;
-            int bottom = v.getPaddingBottom() + systemBars.bottom;
-            v.setPadding(left, top, right, bottom);
+    }
+
+    private void applySafeAreaPaddingOnce() {
+        View main = findViewById(R.id.main);
+        final int baseLeft = main.getPaddingLeft();
+        final int baseTop = main.getPaddingTop();
+        final int baseRight = main.getPaddingRight();
+        final int baseBottom = main.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(main, (v, insets) -> {
+            int insetTypes = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime();
+            Insets combined = insets.getInsets(insetTypes);
+            v.setPadding(
+                    baseLeft + combined.left,
+                    baseTop + combined.top,
+                    baseRight + combined.right,
+                    baseBottom + combined.bottom);
             return insets;
         });
     }
@@ -87,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
                                             UserManager.setUser(user);
                                         }
                                         Toast.makeText(c, "Login successful.", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(c, MainActivity.class));
+                                        MainActivity.openHome(c);
                                     }
                                     @Override
                                     public void onCancelled(DatabaseError error) {

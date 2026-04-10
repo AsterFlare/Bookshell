@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class EditListActivity extends AppCompatActivity {
 
@@ -255,46 +256,39 @@ public class EditListActivity extends AppCompatActivity {
             return;
         }
 
+        btnSave.setEnabled(false);
         DatabaseReference listRef = communityRef.child(uid).child(listId);
-        listRef.child("title").setValue(title);
-        listRef.child("description").setValue(description);
-        if (coverImageBase64 != null) listRef.child("coverImage").setValue(coverImageBase64);
 
-        listRef.child("books").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                HashSet<String> existingIds = new HashSet<>();
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    existingIds.add(ds.getKey());
-                }
-
-                //remove unselected books
-                for (String existingId : existingIds) {
-                    if (!selectedBookIds.contains(existingId)) {
-                        listRef.child("books").child(existingId).removeValue();
-                    }
-                }
-
-                //add new selected books
-                for (CommunityBook book : combinedBooks) {
-                    if (!selectedBookIds.contains(book.bookId)) continue;
-                    if (!existingIds.contains(book.bookId)) {
-                        HashMap<String, Object> map = new HashMap<>();
-                        map.put("title", book.title);
-                        map.put("author", book.author);
-                        map.put("imageUrl", book.imageUrl);
-                        map.put("category", book.category);
-                        map.put("description", book.description);
-                        listRef.child("books").child(book.bookId).setValue(map);
-                    }
-                }
-                Toast.makeText(c, "List updated successfully.", Toast.LENGTH_SHORT).show();
-                finish();
+        Map<String, Object> booksMap = new HashMap<>();
+        for (CommunityBook book : combinedBooks) {
+            if (!selectedBookIds.contains(book.bookId)) {
+                continue;
             }
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("title", book.title);
+            map.put("author", book.author);
+            map.put("imageUrl", book.imageUrl);
+            map.put("category", book.category);
+            map.put("description", book.description);
+            booksMap.put(book.bookId, map);
+        }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("title", title);
+        updates.put("description", description);
+        updates.put("books", booksMap);
+        if (coverImageBase64 != null) {
+            updates.put("coverImage", coverImageBase64);
+        }
+
+        listRef.updateChildren(updates).addOnCompleteListener(task -> {
+            btnSave.setEnabled(true);
+            if (!task.isSuccessful()) {
+                Toast.makeText(c, R.string.toast_share_list_failed, Toast.LENGTH_LONG).show();
+                return;
+            }
+            Toast.makeText(c, R.string.toast_list_updated_success, Toast.LENGTH_SHORT).show();
+            finish();
         });
     }
 }
