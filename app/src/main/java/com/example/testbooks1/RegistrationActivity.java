@@ -92,10 +92,6 @@ public class RegistrationActivity extends AppCompatActivity {
                 Toast.makeText(c, "Please enter your password.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (password.length() < 8) {
-                Toast.makeText(c, R.string.toast_password_too_short, Toast.LENGTH_SHORT).show();
-                return;
-            }
             boolean hasUpper = false, hasLower = false, hasDigit = false;
             for (int i = 0; i < password.length(); i++) {
                 char ch = password.charAt(i);
@@ -107,8 +103,8 @@ public class RegistrationActivity extends AppCompatActivity {
                     hasDigit = true;
                 }
             }
-            if (!hasUpper || !hasLower || !hasDigit) {
-                Toast.makeText(c, R.string.toast_password_too_short, Toast.LENGTH_SHORT).show();
+            if (password.length() < 8 || !hasUpper || !hasLower || !hasDigit) {
+                Toast.makeText(c, R.string.toast_password_requirements, Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -140,7 +136,7 @@ public class RegistrationActivity extends AppCompatActivity {
                             } catch (FirebaseAuthUserCollisionException e) {
                                 Toast.makeText(c, "This email is already registered.", Toast.LENGTH_SHORT).show();
                             } catch (FirebaseAuthWeakPasswordException e) {
-                                Toast.makeText(c, R.string.toast_password_too_weak, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(c, R.string.toast_password_requirements, Toast.LENGTH_SHORT).show();
                             } catch (FirebaseAuthInvalidCredentialsException e) {
                                 Toast.makeText(c, "Invalid email format.", Toast.LENGTH_SHORT).show();
                             } catch (FirebaseAuthException e) {

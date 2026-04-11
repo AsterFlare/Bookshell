@@ -129,7 +129,7 @@
     <string name="toast_password_same_as_current">New password must be different from current password.</string>
     <string name="toast_current_password_incorrect">Current password is incorrect.</string>
     <string name="content_desc_toggle_password">Show or hide password</string>
-    <string name="toast_password_too_short">Password must be at least 8 characters and include uppercase, lowercase, and a number</string>
+    <string name="toast_password_requirements">At least 8 characters, with upper and lower case letters and a number.</string>
     <string name="toast_invalid_email">Enter a valid email address</string>
     <string name="toast_auth_update_failed">Could not update email or password. Sign in again and try, or use Forgot password.</string>
     <string name="toast_email_update_failed">Could not update email. Please try again.</string>
@@ -138,7 +138,6 @@
     <string name="toast_email_already_in_use">That email is already in use by another account.</string>
     <string name="title_confirm_email_change">Confirm current password</string>
     <string name="msg_confirm_email_change">For security, enter your current password to change your email.</string>
-    <string name="toast_password_too_weak">Password is too weak. Use at least 8 characters with uppercase, lowercase, and a number.</string>
     <string name="title_confirm_logout">Log out of BookShell?</string>
     <string name="msg_confirm_logout">You can always sign back in later.</string>
     <string name="bio_default_text">This user has not set their biography yet.</string>
