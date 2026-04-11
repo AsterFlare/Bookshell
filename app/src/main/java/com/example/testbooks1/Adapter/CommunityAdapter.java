@@ -22,6 +22,7 @@ import com.example.testbooks1.EditListActivity;
 import com.example.testbooks1.Model.CommunityItem;
 import com.example.testbooks1.R;
 import com.example.testbooks1.ListDetailActivity;
+import com.example.testbooks1.ViewProfileActivity;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -98,9 +99,16 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.View
 
         holder.tvFullName.setText(item.fullName != null ? item.fullName : "Anonymous");
         holder.ivProfileImage.setImageResource(R.drawable.default_pfp);
-         holder.tvListTitle.setText(item.listTitle);
+        holder.tvListTitle.setText(item.listTitle);
         holder.tvListDescription.setText(item.listDescription);
         bindLiveUserUi(item, holder);
+
+        View.OnClickListener openProfile = v -> {
+            Intent intent = new Intent(context, ViewProfileActivity.class);
+            intent.putExtra("userId", item.userId);
+            context.startActivity(intent);
+        };
+        holder.ivProfileImage.setOnClickListener(openProfile);
 
         if (item.coverImage != null && !item.coverImage.isEmpty()) {
             try {
