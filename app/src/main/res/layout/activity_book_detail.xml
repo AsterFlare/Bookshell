@@ -56,21 +56,59 @@
             android:textColor="@color/navyBlue"
             android:fontFamily="@font/jakarta_bold_italic"
             android:layout_marginTop="16dp"/>
-        <TextView
-            android:id="@+id/tvCategory"
-            android:layout_width="wrap_content"
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:layout_gravity="center"
-            android:text="@string/label_genre_caps"
-            android:fontFamily="@font/jakarta_medium"
-            android:textColor="@color/black"
-            android:backgroundTint="@color/lightBlue"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="4dp"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/rounded_reactions_container"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="10dp">
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:maxWidth="160dp"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:fontFamily="@font/jakarta_medium"
+                android:textColor="@color/black"
+                android:background="@drawable/rounded_reactions_container"
+                android:backgroundTint="@color/lightBlue"
+                android:paddingHorizontal="16dp"
+                android:layout_marginRight="4dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/ratingGroup"
+                app:layout_constraintHorizontal_chainStyle="packed"/>
+            <LinearLayout
+                android:id="@+id/ratingGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                app:layout_constraintStart_toEndOf="@id/tvCategory"
+                app:layout_constraintTop_toTopOf="@id/tvCategory"
+                app:layout_constraintBottom_toBottomOf="@id/tvCategory"
+                app:layout_constraintEnd_toEndOf="parent">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="★"
+                    android:textSize="14sp"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/jakarta_bold"
+                    android:textColor="@color/yellow" />
+                <TextView
+                    android:id="@+id/tvOverallRating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:layout_gravity="center"
+                    android:textSize="14sp"
+                    android:layout_marginStart="4dp"
+                    android:fontFamily="@font/jakarta_bold"
+                    android:textColor="@color/darkerGray" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
             style="?android:attr/buttonBarStyle"

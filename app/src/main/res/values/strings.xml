@@ -290,4 +290,5 @@
     <string name="search_results_count">%1$d results</string>
     <string name="author_by_line">by %1$s</string>
     <string name="toast_enter_search_query">Please enter a search query.</string>
+    <string name="no_ratings">No ratings yet.</string>
 </resources>

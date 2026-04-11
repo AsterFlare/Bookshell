@@ -44,7 +44,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 public class BookDetailActivity extends AppCompatActivity {
-    TextView tvTitle, tvAuthor, tvDescription, tvCategory, tvNoReviews;
+    TextView tvTitle, tvAuthor, tvDescription, tvCategory, tvOverallRating, tvNoReviews;
     ShapeableImageView ivBook;
     DatabaseReference communityRef, reactionsRef, reviewRef;
     RatingBar ratingBar;
@@ -89,6 +89,7 @@ public class BookDetailActivity extends AppCompatActivity {
         tvAuthor = findViewById(R.id.tvAuthor);
         tvDescription = findViewById(R.id.tvDescription);
         tvCategory = findViewById(R.id.tvCategory);
+        tvOverallRating = findViewById(R.id.tvOverallRating);
         tvNoReviews = findViewById(R.id.tvNoReviews);
 
         //etListTitle = findViewById(R.id.etListTitle);
@@ -132,7 +133,6 @@ public class BookDetailActivity extends AppCompatActivity {
                 .getReference("reviews")
                 .child(bookId);
 
-
         String title = getIntent().getStringExtra("title");
         String image = getIntent().getStringExtra("image");
         String author = getIntent().getStringExtra("author");
@@ -143,34 +143,12 @@ public class BookDetailActivity extends AppCompatActivity {
             loadBookDetailsFromUserBooks();
         }
 
+        loadOverallRating();
+
         reactionsRef = FirebaseDatabase.getInstance()
                 .getReference("book_reactions")
                 .child(bookId);
 
-        // real-time listener for reaction counts
-        /*
-        reactionsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                likeCount = snapshot.child("like").getValue(Integer.class) != null ? snapshot.child("like").getValue(Integer.class) : 0;
-                fireCount = snapshot.child("fire").getValue(Integer.class) != null ? snapshot.child("fire").getValue(Integer.class) : 0;
-                heartCount = snapshot.child("heart").getValue(Integer.class) != null ? snapshot.child("heart").getValue(Integer.class) : 0;
-                sadCount = snapshot.child("sad").getValue(Integer.class) != null ? snapshot.child("sad").getValue(Integer.class) : 0;
-                angryCount = snapshot.child("angry").getValue(Integer.class) != null ? snapshot.child("angry").getValue(Integer.class) : 0;
-
-                tvLikeCount.setText(String.valueOf(likeCount));
-                tvFireCount.setText(String.valueOf(fireCount));
-                tvHeartCount.setText(String.valueOf(heartCount));
-                tvSadCount.setText(String.valueOf(sadCount));
-                tvAngryCount.setText(String.valueOf(angryCount));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Toast.makeText(BookDetailActivity.this, "Failed to load reactions", Toast.LENGTH_SHORT).show();
-            }
-        });
-        */
         reactionsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -682,6 +660,36 @@ public class BookDetailActivity extends AppCompatActivity {
                 Toast.makeText(c, "Book added to the list.", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(c, "Failed to add book to the list", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadOverallRating() {
+        reviewRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double total = 0;
+                int count = 0;
+
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    Integer rating = ds.child("rating").getValue(Integer.class);
+                    if (rating != null) {
+                        total += rating;
+                        count++;
+                    }
+                }
+                if (count == 0) {
+                    tvOverallRating.setText(R.string.no_ratings);
+                    return;
+                }
+                double avg = total / count;
+                String formatted = String.format("%.1f (%d)", avg, count);
+
+                tvOverallRating.setText(formatted);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                tvOverallRating.setText("0.0");
             }
         });
     }
