@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -212,7 +213,13 @@ public class ViewProfileActivity extends AppCompatActivity {
                                 BadgeRules.levelNameForUnlockedCount(ViewProfileActivity.this, (int) unlocked)
                         );
 
-                        applyStreakBars(snapshot.child("weeklyActivity"));
+                        String storedWeek = snapshot.child(StreakCalendar.WEEK_KEY_FIELD).getValue(String.class);
+                        String currentWeek = StreakCalendar.currentMondayKeyManila();
+                        if (storedWeek != null && !storedWeek.equals(currentWeek)) {
+                            applyStreakBars(null);
+                        } else {
+                            applyStreakBars(snapshot.child("weeklyActivity"));
+                        }
                     }
 
                     @Override
@@ -256,9 +263,9 @@ public class ViewProfileActivity extends AppCompatActivity {
                 });
     }
 
-    private void applyStreakBars(DataSnapshot weeklyActivity) {
+    private void applyStreakBars(@Nullable DataSnapshot weeklyActivity) {
         for (int i = 0; i < 7; i++) {
-            long val = getLong(weeklyActivity, String.valueOf(i));
+            long val = weeklyActivity == null ? 0L : getLong(weeklyActivity, String.valueOf(i));
 
             ViewGroup.LayoutParams lp = streakBars[i].getLayoutParams();
             lp.height = val > 0 ? 80 : 8;
