@@ -218,10 +218,6 @@ public class SettingsActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.toast_password_fields_required, Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (newPass.length() < 8) {
-                Toast.makeText(this, R.string.toast_password_too_short, Toast.LENGTH_SHORT).show();
-                return;
-            }
             boolean hasUpper = false, hasLower = false, hasDigit = false;
             for (int i = 0; i < newPass.length(); i++) {
                 char ch = newPass.charAt(i);
@@ -233,8 +229,8 @@ public class SettingsActivity extends AppCompatActivity {
                     hasDigit = true;
                 }
             }
-            if (!hasUpper || !hasLower || !hasDigit) {
-                Toast.makeText(this, R.string.toast_password_too_short, Toast.LENGTH_SHORT).show();
+            if (newPass.length() < 8 || !hasUpper || !hasLower || !hasDigit) {
+                Toast.makeText(this, R.string.toast_password_requirements, Toast.LENGTH_SHORT).show();
                 return;
             }
             if (!newPass.equals(confirm)) {
@@ -291,7 +287,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case "ERROR_INVALID_EMAIL":
                     return getString(R.string.toast_invalid_email);
                 case "ERROR_WEAK_PASSWORD":
-                    return getString(R.string.toast_password_too_weak);
+                    return getString(R.string.toast_password_requirements);
                 case "ERROR_WRONG_PASSWORD":
                 case "ERROR_INVALID_CREDENTIAL":
                     return getString(R.string.toast_current_password_incorrect);
