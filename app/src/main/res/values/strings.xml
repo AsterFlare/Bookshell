@@ -52,12 +52,12 @@
     <string name="toast_sign_in_for_community">Sign in to create and share community lists.</string>
     <string name="action_daily_check_in">Daily Check-in</string>
     <string name="action_checked_in_today">Checked in today</string>
-    <string name="streak_reset_info">Resets at midnight PST</string>
-    <string name="streak_reset_info_inline">(resets at midnight PST)</string>
+    <string name="streak_reset_info">Resets at midnight PHT</string>
+    <string name="streak_reset_info_inline">(resets at midnight PHT)</string>
     <string name="toast_checked_in_today">Daily check-in saved</string>
     <string name="toast_check_in_failed">Could not save daily check-in</string>
     <string name="weekly_activity">WEEKLY ACTIVITY</string>
-    <!-- Week slots: index 0 = Monday … 6 = Sunday (same order as PST helpers in Profile/Library) -->
+    <!-- Week slots: index 0 = Monday … 6 = Sunday (Manila time; Profile/Library) -->
     <string name="weekday_mon">Mon</string>
     <string name="weekday_tue">Tue</string>
     <string name="weekday_wed">Wed</string>

@@ -35,17 +35,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
-import java.util.Locale;
-import java.util.TimeZone;
 
 @SuppressLint("NotifyDataSetChanged")
 public class LibraryActivity extends AppCompatActivity {
-
-    private static final String STREAK_ZONE_ID = "Asia/Manila";
 
     BottomNavigationView bottomNav;
     private Context c;
@@ -297,9 +291,12 @@ public class LibraryActivity extends AppCompatActivity {
         libraryStatsListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (StreakCalendar.applyWeekRolloverIfNeeded(statsRef, snapshot)) {
+                    return;
+                }
                 long streak = BadgeRules.readStatLong(snapshot, "readingStreak");
                 String lastStreakDate = snapshot.child("lastStreakDate").getValue(String.class);
-                String today = streakDayKey();
+                String today = StreakCalendar.streakDayKey();
                 if (streak == 1L && today.equals(lastStreakDate)) {
                     if (enforceSingleDayWeeklyForStreakOne(uid, snapshot.child("weeklyActivity"))) {
                         return;
@@ -371,24 +368,8 @@ public class LibraryActivity extends AppCompatActivity {
         dot.setBackgroundTintList(ColorStateList.valueOf(argb));
     }
 
-    private static TimeZone streakTimeZone() {
-        return TimeZone.getTimeZone(STREAK_ZONE_ID);
-    }
-
-    private static String streakDayKey() {
-        SimpleDateFormat dayKey = new SimpleDateFormat("yyyyMMdd", Locale.US);
-        dayKey.setTimeZone(streakTimeZone());
-        return dayKey.format(Calendar.getInstance().getTime());
-    }
-
-    private static int dayOfWeekIndexStreak() {
-        Calendar cal = Calendar.getInstance(streakTimeZone(), Locale.US);
-        int dow = cal.get(Calendar.DAY_OF_WEEK);
-        return (dow + 5) % 7;
-    }
-
     private boolean enforceSingleDayWeeklyForStreakOne(String uid, @NonNull DataSnapshot weeklyActivitySnapshot) {
-        int todayIdx = dayOfWeekIndexStreak();
+        int todayIdx = StreakCalendar.dayOfWeekIndexStreak();
         boolean needsFix = false;
         for (int i = 0; i < 7; i++) {
             long v = BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(i));

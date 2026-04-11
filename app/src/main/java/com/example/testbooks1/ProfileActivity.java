@@ -41,20 +41,13 @@ import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
 
 @SuppressLint("NotifyDataSetChanged")
 public class ProfileActivity extends AppCompatActivity {
 
     /** Calendar for streak, check-in, and weekly bars (Philippines). */
-    private static final String STREAK_ZONE_ID = "Asia/Manila";
-
     private TextView tvFullName, tvProfileBio, tvBooksCount, tvBadgesCount, tvStreakDays, tvViewAllBadges;
     private TextView tvProfileLevel;
     private TextView tvCurrentlyReadingEmpty;
@@ -178,7 +171,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     /**
      * Stats listener only runs when Firebase data changes, so crossing midnight does not fire it.
-     * Recompute whether today's streak day key ({@link #streakDayKey()}) still matches {@link #cachedLastStreakDateForCheckIn}.
+     * Recompute whether today's streak day key ({@link StreakCalendar#streakDayKey()}) still matches {@link #cachedLastStreakDateForCheckIn}.
      */
     private void refreshDailyCheckInButtonAfterCalendarChange() {
         if (isFinishing() || btnDailyCheckIn == null) {
@@ -187,7 +180,7 @@ public class ProfileActivity extends AppCompatActivity {
         if (cachedLastStreakDateForCheckIn == null) {
             return;
         }
-        String today = streakDayKey();
+        String today = StreakCalendar.streakDayKey();
         boolean alreadyCheckedInToday = today.equals(cachedLastStreakDateForCheckIn);
         btnDailyCheckIn.setEnabled(!alreadyCheckedInToday);
         btnDailyCheckIn.setText(alreadyCheckedInToday
@@ -197,7 +190,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void scheduleCheckInRefreshAtNextStreakMidnight() {
         cancelScheduledCheckInMidnightRefresh();
-        long delay = millisUntilNextStreakMidnight();
+        long delay = StreakCalendar.millisUntilNextStreakMidnight();
         checkInMidnightRunnable = () -> {
             refreshDailyCheckInButtonAfterCalendarChange();
             scheduleCheckInRefreshAtNextStreakMidnight();
@@ -302,21 +295,26 @@ public class ProfileActivity extends AppCompatActivity {
                     btnDailyCheckIn.setText(R.string.action_daily_check_in);
                     return;
                 }
+                DatabaseReference statsRef = mDatabase.child("users").child(userId).child("stats");
+                if (StreakCalendar.applyWeekRolloverIfNeeded(statsRef, snapshot)) {
+                    return;
+                }
                 long completed = BadgeRules.readStatLong(snapshot, "completed");
                 long reviews = BadgeRules.readStatLong(snapshot, "reviews");
                 long readingLists = BadgeRules.readStatLong(snapshot, "readingLists");
                 long streak = BadgeRules.readStatLong(snapshot, "readingStreak");
                 String lastStreakDate = snapshot.child("lastStreakDate").getValue(String.class);
                 cachedLastStreakDateForCheckIn = lastStreakDate;
-                String today = streakDayKey();
-                int dayGap = dayGapStreak(lastStreakDate, today);
+                String today = StreakCalendar.streakDayKey();
+                int dayGap = StreakCalendar.dayGapStreak(lastStreakDate, today);
 
                 if (dayGap >= 2 && streak != 0L) {
-                    DatabaseReference statsRef = mDatabase.child("users").child(userId).child("stats");
                     statsRef.child("readingStreak").setValue(0L);
                     for (int i = 0; i < 7; i++) {
                         statsRef.child("weeklyActivity").child(String.valueOf(i)).setValue(0L);
                     }
+                    statsRef.child(StreakCalendar.WEEK_KEY_FIELD)
+                            .setValue(StreakCalendar.currentMondayKeyManila());
                     streak = 0L;
                 }
 
@@ -359,7 +357,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private boolean enforceSingleDayWeeklyForStreakOne(@NonNull DataSnapshot weeklyActivitySnapshot) {
-        int todayIdx = dayOfWeekIndexStreak();
+        int todayIdx = StreakCalendar.dayOfWeekIndexStreak();
         boolean needsFix = false;
         for (int i = 0; i < 7; i++) {
             long v = BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(i));
@@ -407,7 +405,7 @@ public class ProfileActivity extends AppCompatActivity {
             return false;
         }
 
-        int todayIndex = dayOfWeekIndexStreak();
+        int todayIndex = StreakCalendar.dayOfWeekIndexStreak();
         if (BadgeRules.readStatLong(weeklyActivitySnapshot, String.valueOf(todayIndex)) > 0L) {
             return false;
         }
@@ -483,26 +481,28 @@ public class ProfileActivity extends AppCompatActivity {
             @NonNull
             @Override
             public Transaction.Result doTransaction(@NonNull MutableData currentData) {
-                String today = streakDayKey();
+                String today = StreakCalendar.streakDayKey();
                 String last = currentData.child("lastStreakDate").getValue(String.class);
                 if (today.equals(last)) {
                     return Transaction.success(currentData);
                 }
 
                 long currentStreak = readMutableLong(currentData.child("readingStreak"));
-                int gap = dayGapStreak(last, today);
+                int gap = StreakCalendar.dayGapStreak(last, today);
                 long nextStreak = (gap == 1) ? (currentStreak + 1L) : 1L;
 
                 currentData.child("readingStreak").setValue(nextStreak);
                 currentData.child("lastStreakDate").setValue(today);
 
-                int dayIndex = dayOfWeekIndexStreak();
+                int dayIndex = StreakCalendar.dayOfWeekIndexStreak();
                 if (nextStreak == 1L) {
                     for (int i = 0; i < 7; i++) {
                         currentData.child("weeklyActivity").child(String.valueOf(i)).setValue(0L);
                     }
                 }
                 currentData.child("weeklyActivity").child(String.valueOf(dayIndex)).setValue(1L);
+                currentData.child(StreakCalendar.WEEK_KEY_FIELD)
+                        .setValue(StreakCalendar.currentMondayKeyManila());
                 return Transaction.success(currentData);
             }
 
@@ -512,7 +512,7 @@ public class ProfileActivity extends AppCompatActivity {
                     Toast.makeText(context, R.string.toast_check_in_failed, Toast.LENGTH_SHORT).show();
                     return;
                 }
-                String today = streakDayKey();
+                String today = StreakCalendar.streakDayKey();
                 String last = currentData != null ? currentData.child("lastStreakDate").getValue(String.class) : null;
                 if (!today.equals(last)) {
                     return;
@@ -554,59 +554,6 @@ public class ProfileActivity extends AppCompatActivity {
             return Math.round((Double) value);
         }
         return 0L;
-    }
-
-    private static TimeZone streakTimeZone() {
-        return TimeZone.getTimeZone(STREAK_ZONE_ID);
-    }
-
-    private static String streakDayKey() {
-        SimpleDateFormat dayKey = new SimpleDateFormat("yyyyMMdd", Locale.US);
-        dayKey.setTimeZone(streakTimeZone());
-        return dayKey.format(Calendar.getInstance().getTime());
-    }
-
-    /** Monday=0 … Sunday=6 in Manila streak zone. */
-    private static int dayOfWeekIndexStreak() {
-        Calendar cal = Calendar.getInstance(streakTimeZone(), Locale.US);
-        int dow = cal.get(Calendar.DAY_OF_WEEK);
-        return (dow + 5) % 7;
-    }
-
-    private static int dayGapStreak(@Nullable String lastDay, @NonNull String todayDay) {
-        if (lastDay == null || lastDay.isEmpty()) {
-            return Integer.MAX_VALUE;
-        }
-        try {
-            SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd", Locale.US);
-            fmt.setLenient(false);
-            fmt.setTimeZone(streakTimeZone());
-            Date dLast = fmt.parse(lastDay);
-            Date dToday = fmt.parse(todayDay);
-            if (dLast == null || dToday == null) {
-                return Integer.MAX_VALUE;
-            }
-            long lastMs = dLast.getTime();
-            long todayMs = dToday.getTime();
-            long days = (todayMs - lastMs) / (24L * 60L * 60L * 1000L);
-            return (int) days;
-        } catch (Exception e) {
-            return Integer.MAX_VALUE;
-        }
-    }
-
-    private static long millisUntilNextStreakMidnight() {
-        TimeZone tz = streakTimeZone();
-        Calendar now = Calendar.getInstance(tz, Locale.US);
-        Calendar next = (Calendar) now.clone();
-        next.set(Calendar.HOUR_OF_DAY, 0);
-        next.set(Calendar.MINUTE, 0);
-        next.set(Calendar.SECOND, 0);
-        next.set(Calendar.MILLISECOND, 0);
-        if (!next.after(now)) {
-            next.add(Calendar.DAY_OF_MONTH, 1);
-        }
-        return Math.max(1L, next.getTimeInMillis() - now.getTimeInMillis());
     }
 
     static class CurrentlyReadingBook {
