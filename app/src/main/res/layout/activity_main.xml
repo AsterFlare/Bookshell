@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:background="@color/white"
         android:orientation="horizontal"
+        android:elevation="4dp"
         tools:ignore="MissingConstraints">
         <ImageView
             android:layout_width="wrap_content"
@@ -32,7 +33,6 @@
             android:paddingEnd="10dp"
             android:text="@string/brand_bookshell"
             android:textSize="26sp"
-            android:fontFamily="@font/jakarta_extra_bold"
             android:textStyle="bold"
             style="@style/BookshellBrandLightBlue" />
     </LinearLayout>
