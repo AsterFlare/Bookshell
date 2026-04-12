@@ -77,37 +77,37 @@
                 android:lineSpacingExtra="4dp"/>
 
             <!-- Tab Buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="24dp"
-                android:orientation="horizontal">
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="50dp"-->
+<!--                android:layout_marginTop="24dp"-->
+<!--                android:orientation="horizontal">-->
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_all"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:text="@string/filter_all"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    app:backgroundTint="@color/navyBlue"
-                    app:cornerRadius="25dp" />
+<!--                <com.google.android.material.button.MaterialButton-->
+<!--                    android:id="@+id/btn_all"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_marginEnd="8dp"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:text="@string/filter_all"-->
+<!--                    android:textAllCaps="false"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    app:backgroundTint="@color/navyBlue"-->
+<!--                    app:cornerRadius="25dp" />-->
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_currently_reading_tab"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="@string/status_currently_reading"
-                    android:textAllCaps="false"
-                    android:textColor="@color/darkGray"
-                    app:backgroundTint="@color/white"
-                    app:cornerRadius="25dp"
-                    app:strokeColor="@color/lightGray"
-                    app:strokeWidth="1dp" />
-            </LinearLayout>
+<!--                <com.google.android.material.button.MaterialButton-->
+<!--                    android:id="@+id/btn_currently_reading_tab"-->
+<!--                    android:layout_width="0dp"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:text="@string/status_currently_reading"-->
+<!--                    android:textAllCaps="false"-->
+<!--                    android:textColor="@color/darkGray"-->
+<!--                    app:backgroundTint="@color/white"-->
+<!--                    app:cornerRadius="25dp"-->
+<!--                    app:strokeColor="@color/lightGray"-->
+<!--                    app:strokeWidth="1dp" />-->
+<!--            </LinearLayout>-->
 
             <!-- Weekly Progress Card -->
             <androidx.cardview.widget.CardView

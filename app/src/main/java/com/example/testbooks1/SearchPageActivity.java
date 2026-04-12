@@ -154,8 +154,22 @@ public class SearchPageActivity extends AppCompatActivity {
                                 continue;
                             }
 
+                            //JSONObject accessInfo = bookObj.optJSONObject("accessInfo");
+                            //String readerLink = accessInfo != null ? accessInfo.optString("webReaderLink", "") : "";
+
                             JSONObject accessInfo = bookObj.optJSONObject("accessInfo");
-                            String readerLink = accessInfo != null ? accessInfo.optString("webReaderLink", "") : "";
+                            if (accessInfo == null) {
+                                continue;
+                            }
+
+                            String viewability = accessInfo.optString("viewability", "NONE");
+                            boolean embeddable = accessInfo.optBoolean("embeddable", false);
+
+                            if (!(viewability.equals("ALL_PAGES") || viewability.equals("PARTIAL")) || !embeddable) {
+                                continue;
+                            }
+
+                            String readerLink = accessInfo.optString("webReaderLink", "");
 
                             String id = bookObj.optString("id", "");
                             if (id.isEmpty()) {

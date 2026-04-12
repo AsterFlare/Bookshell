@@ -92,8 +92,8 @@ public class LibraryActivity extends AppCompatActivity {
         tvCurrentBookDescription = findViewById(R.id.tvCurrentBookDescription);
         btnContinueReading = findViewById(R.id.btnContinueReading);
 
-        btnAll = findViewById(R.id.btn_all);
-        btnCurrentlyReadingTab = findViewById(R.id.btn_currently_reading_tab);
+        //btnAll = findViewById(R.id.btn_all);
+        //btnCurrentlyReadingTab = findViewById(R.id.btn_currently_reading_tab);
         rvWantToRead = findViewById(R.id.rvWantToRead);
         tvWantToReadEmpty = findViewById(R.id.tvWantToReadEmpty);
         readShelfHeader = findViewById(R.id.readShelfHeader);
@@ -110,8 +110,8 @@ public class LibraryActivity extends AppCompatActivity {
                 findViewById(R.id.weekly_dot_6),
         };
 
-        btnAll.setOnClickListener(v -> updateTabUI(true));
-        btnCurrentlyReadingTab.setOnClickListener(v -> updateTabUI(false));
+        //btnAll.setOnClickListener(v -> updateTabUI(true));
+        //btnCurrentlyReadingTab.setOnClickListener(v -> updateTabUI(false));
 
         wantToReadList = new ArrayList<>();
         wantToReadAdapter = new UserBooksAdapter(c, wantToReadList, new HashSet<>(), null);
