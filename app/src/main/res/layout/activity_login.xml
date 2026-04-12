@@ -9,7 +9,6 @@
     android:gravity="center_vertical"
     android:background="@color/lightWhite"
     tools:context=".LoginActivity">
-
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="200dp"
@@ -25,23 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:background="@drawable/rounded_cnt"
-        android:backgroundTintMode="add"
-        android:backgroundTint="#66F0F0F8">
-        <View
-            android:layout_width="140dp"
-            android:layout_height="140dp"
-            android:layout_gravity="top|start"
-            android:layout_marginTop="-60dp"
-            android:layout_marginStart="-60dp"
-            android:background="@drawable/circle_overlay"/>
-        <View
-            android:layout_width="140dp"
-            android:layout_height="140dp"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="-60dp"
-            android:layout_marginEnd="-60dp"
-            android:background="@drawable/circle_overlay"/>
+        android:background="@drawable/rounded_cnt">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
