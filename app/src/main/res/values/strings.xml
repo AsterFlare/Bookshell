@@ -261,10 +261,10 @@
     <string name="brand_bookshell">BookShell</string>
     <string name="search_action">Search</string>
     <string name="section_trending_topics">TRENDING TOPICS</string>
-    <string name="topic_fantasy">Fantasy</string>
-    <string name="topic_coastal_myths">Coastal Myths</string>
-    <string name="topic_new_releases">New Releases</string>
-    <string name="topic_marine_biology">Marine Biology</string>
+    <string name="search_all">All</string>
+    <string name="search_title">Title</string>
+    <string name="search_author">Author</string>
+    <string name="search_genre">Genre</string>
     <string name="topic_classic_sails">Classic Sails</string>
     <string name="section_recently_viewed">Recently Viewed</string>
     <string name="no_recently_viewed">No recently viewed.</string>
